@@ -13,12 +13,23 @@
 import { CORE } from './roster/core';
 import { STRIKERS } from './roster/strikers';
 import { STRIKERS_2 } from './roster/strikers2';
+import { STRIKERS_3 } from './roster/strikers3';
 import { CONTROLLERS, TENDERS } from './roster/support';
+import { CONTROLLERS_2, TENDERS_2 } from './roster/support2';
 import type { Rarity, Role, Species } from './types';
 
 export * from './types';
 
-export const SPECIES: Species[] = [...CORE, ...STRIKERS, ...STRIKERS_2, ...TENDERS, ...CONTROLLERS];
+export const SPECIES: Species[] = [
+  ...CORE,
+  ...STRIKERS,
+  ...STRIKERS_2,
+  ...STRIKERS_3,
+  ...TENDERS,
+  ...TENDERS_2,
+  ...CONTROLLERS,
+  ...CONTROLLERS_2,
+];
 
 export const SPECIES_BY_ID = new Map(SPECIES.map((s) => [s.id, s]));
 

@@ -372,6 +372,66 @@ const OVERRIDES: Record<string, Mechanic> = {
     target: 'allAllies', hits: 0, power: 0,
     applies: [{ kind: 'regen', turns: 3, magnitude: 6 }],
   },
+
+  // ── third batch: what the reader could not express ────────────────────────
+  'sphodromantis:Exact Range': {
+    target: 'oneEnemy', hits: 1, power: 1.75, alwaysCrit: true, ignoreDef: 0.25,
+  },
+  'stagmomantis:Sway': {
+    target: 'self', hits: 0, power: 0,
+    selfApplies: [{ kind: 'dodgeUp', turns: 2, magnitude: 35 }],
+  },
+  // "Double the next skill" needs a queued modifier the engine has no slot for; a flat
+  // self-buff of the same rough value stands in.
+  'oecanthus:Leaf Baffle': {
+    target: 'self', hits: 0, power: 0,
+    selfApplies: [{ kind: 'atkUp', turns: 2, magnitude: 60 }],
+  },
+  // Copying a stat off the field is not modelled; a large self ATK buff approximates it.
+  'phyllium:Vein Perfect': {
+    target: 'self', hits: 0, power: 0,
+    selfApplies: [{ kind: 'atkUp', turns: 3, magnitude: 45 }],
+  },
+  'zophobas:Break It Down': { target: 'oneEnemy', hits: 0, power: 0, strip: 'all' },
+  'sphecius:Glide Home': {
+    target: 'oneAlly', hits: 0, power: 0, heal: 0.2,
+    applies: [{ kind: 'spdUp', turns: 2, magnitude: 40 }],
+  },
+  // Cooldown manipulation has no representation; a strong short buff stands in.
+  'sphecius:Choose the Brood': {
+    target: 'oneAlly', hits: 0, power: 0,
+    applies: [
+      { kind: 'atkUp', turns: 2, magnitude: 30 },
+      { kind: 'spdUp', turns: 2, magnitude: 30 },
+    ],
+  },
+  // Max-HP growth is not modelled, so this heals and hardens instead.
+  'dolichovespula:Grow the Nest': {
+    target: 'allAllies', hits: 0, power: 0, heal: 0.12,
+    applies: [{ kind: 'defUp', turns: 99, magnitude: 10 }],
+  },
+  'pieris:Plain to You': {
+    target: 'oneAlly', hits: 0, power: 0,
+    applies: [{ kind: 'untargetable', turns: 2, magnitude: 0 }],
+  },
+  // Suppressing an enemy's incoming buffs is not modelled; stripping what they have is
+  // the closest honest equivalent.
+  'xenos:Abandon the Colony': {
+    target: 'oneEnemy', hits: 0, power: 0, strip: 'all',
+    applies: [{ kind: 'accDown', turns: 3, magnitude: 20 }],
+  },
+  'trialeurodes:Sheds Everything': {
+    target: 'self', hits: 0, power: 0, cleanse: 'all',
+    selfApplies: [{ kind: 'damageCut', turns: 3, magnitude: 30 }],
+  },
+  // Halving a target's buffs is not modelled; blocking their healing is the nearest.
+  'diaphorina:Bitter Fruit': {
+    target: 'oneEnemy', hits: 0, power: 0,
+    applies: [
+      { kind: 'healBlock', turns: 3, magnitude: 0 },
+      { kind: 'atkDown', turns: 3, magnitude: 20 },
+    ],
+  },
 };
 
 // ── the compiled catalogue ────────────────────────────────────────────────────

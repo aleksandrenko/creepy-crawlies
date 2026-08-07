@@ -12,6 +12,7 @@ import {
   BackendError,
   EGG_CHANCE_LOSS,
   EGG_CHANCE_WIN,
+  EGG_CHANCE_WIN_SECOND,
   type Backend,
   type Egg,
   type EggSource,
@@ -372,7 +373,7 @@ export class LocalBackend implements Backend {
     return { insect, firstTime };
   }
 
-  async recordBattle(result: { won: boolean; opponent: string }): Promise<{ egg: Egg | null; xp: number }> {
+  async recordBattle(result: { won: boolean; opponent: string }): Promise<{ eggs: Egg[]; xp: number }> {
     const user = this.requireSession();
     const state = this.state(user.id);
 
@@ -382,12 +383,18 @@ export class LocalBackend implements Backend {
     state.profile = { ...state.profile, motes: state.profile.motes + (result.won ? 40 : 10) };
 
     // An egg is a chance, not a wage — and a loss is still worth playing out.
-    const chance = result.won ? EGG_CHANCE_WIN : EGG_CHANCE_LOSS;
-    const egg = Math.random() < chance ? makeEgg(rollEggSpecies(), 'battle') : null;
-    if (egg) state.eggs.push(egg);
+    const eggs: Egg[] = [];
+    if (Math.random() < (result.won ? EGG_CHANCE_WIN : EGG_CHANCE_LOSS)) {
+      eggs.push(makeEgg(rollEggSpecies(), 'battle'));
+      // The second egg is rolled only when the first landed, so a win can pay twice.
+      if (result.won && Math.random() < EGG_CHANCE_WIN_SECOND) {
+        eggs.push(makeEgg(rollEggSpecies(), 'battle'));
+      }
+    }
+    state.eggs.push(...eggs);
 
     this.save(user.id, state);
-    return { egg, xp };
+    return { eggs, xp };
   }
 
   async renameInsect(insectId: string, nickname: string | null): Promise<OwnedInsect> {

@@ -474,5 +474,348 @@
     "license": "Public domain",
     "licenseUrl": "",
     "source": "https://commons.wikimedia.org/wiki/File:Ant_decapitated_by_a_parassitoid.jpg"
+  },
+  "anoplophora": {
+    "latin": "Anoplophora chinensis",
+    "author": "No machine-readable author provided. Iwatebud assumed (based on copyright claims).",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Anoplophora_malasiaca.jpg"
+  },
+  "phasmahopla": {
+    "latin": "Extatosoma tiaratum",
+    "author": "Rosa Pineda",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Australian_Walking_Stick.jpg"
+  },
+  "belostoma": {
+    "latin": "Belostoma flumineum",
+    "author": "Christian Grenier",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Belostoma_flumineum.jpg"
+  },
+  "pepsisformosa": {
+    "latin": "Pepsis formosa",
+    "author": "Niklas299",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Pepsis_grossa_(cropped).jpg"
+  },
+  "sphodromantis": {
+    "latin": "Sphodromantis lineola",
+    "author": "R.J. Blach",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Sphrodomantis_lineola_01.jpg"
+  },
+  "macrotermessoldier": {
+    "latin": "Macrotermes natalensis",
+    "author": "Unknown",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Isoptera_sandias_02.jpg"
+  },
+  "euchroma": {
+    "latin": "Euchroma gigantea",
+    "author": "Hectonichus",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Buprestidae_-_Euchroma_gigantea.JPG"
+  },
+  "scolopendrina": {
+    "latin": "Scutigera coleoptrata",
+    "author": "Didier Descouens",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Scutigera_coleoptrata_MHNT_.jpg"
+  },
+  "harpegnathos": {
+    "latin": "Harpegnathos saltator",
+    "author": "Kalyan Varma",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Harpegnathos_saltator_fight.jpg"
+  },
+  "gigantiops": {
+    "latin": "Gigantiops destructor",
+    "author": "April Nobile",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Gigantiops_destructor_casent0103316_profile_1.jpg"
+  },
+  "anisoptera": {
+    "latin": "Pantala flavescens",
+    "author": "Jeevan Jose, Kerala, India",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Pantala_flavescens-Kadavoor-2017-05-04-002.jpg"
+  },
+  "periplaneta": {
+    "latin": "Periplaneta americana",
+    "author": "Gary Alpert",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:American-cockroach.jpg"
+  },
+  "chrysina": {
+    "latin": "Chrysina resplendens",
+    "author": "gailhampshire from Cradley, Malvern, U.K",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Gold_Bug_.Plusiotis_resplendens_-_Flickr_-_gailhampshire_(1).jpg"
+  },
+  "stagmomantis": {
+    "latin": "Stagmomantis carolina",
+    "author": "Kaldari",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Stagmomantis_carolina_Kaldari_05_cropped.jpg"
+  },
+  "cerambyx": {
+    "latin": "Cerambyx cerdo",
+    "author": "Beko",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Cerambyx_cerdo_Linnaeus,_1758_-_Great_Capricorn_Beetle_01.jpg"
+  },
+  "sirex": {
+    "latin": "Sirex noctilio",
+    "author": "Sirex_noctilio_female_3.jpg: David R. Lance, USDA APHIS PPQ, United States derivative work: Toter Alter Mann (talk)",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Sirex_noctilio_female_3_small.jpg"
+  },
+  "polyergus": {
+    "latin": "Polyergus rufescens",
+    "author": "April Nobile",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Polyergus_rufescens_casent0173859_profile_1.jpg"
+  },
+  "tabanus": {
+    "latin": "Tabanus sudeticus",
+    "author": "Kulac",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Tabanus_sudeticus02.jpg"
+  },
+  "oecanthus": {
+    "latin": "Oecanthus fultoni",
+    "author": "Calibas at English Wikipedia",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Snowytreecricket.JPG"
+  },
+  "phyllium": {
+    "latin": "Phyllium giganteum",
+    "author": "Drägüs",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Pulchriphyllium_giganteum,_adult_femal_from_dorsal.jpg"
+  },
+  "zophobas": {
+    "latin": "Zophobas morio",
+    "author": "Brian Gratwicke",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Zophobas_morio.jpg"
+  },
+  "anthia": {
+    "latin": "Anthia sexguttata",
+    "author": "School of Ecology and Conservation &lt;kchandra58 at yahoo.co.in&gt;",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Anthia_sexguttata.jpg"
+  },
+  "thermonectus": {
+    "latin": "Thermonectus marmoratus",
+    "author": "Bugboy52.40",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Diving_beetle1.svg"
+  },
+  "brachypelmaphid": {
+    "latin": "Reduvius personatus",
+    "author": "Didier Descouens",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:(MHNT)_Reduvius_personatus_on_Dasiphora_fruticosa.jpg"
+  },
+  "apiscerana": {
+    "latin": "Apis cerana",
+    "author": "Rushenb",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Apis_cerana,_Asiatic_honey_bee_-_Khao_Yai_National_Park.jpg"
+  },
+  "atta": {
+    "latin": "Atta cephalotes",
+    "author": "Pjt56",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Atta_cephalotes-pjt.jpg"
+  },
+  "formicafusca": {
+    "latin": "Formica fusca",
+    "author": "Mathias Krumbholz",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Grauschwarze_Sklavenameise_Formica_fusca_01_(MK).jpg"
+  },
+  "anthidium": {
+    "latin": "Anthidium manicatum",
+    "author": "Bruce Marlin",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Anthidium_manicatum_male.jpg"
+  },
+  "chrysoperla": {
+    "latin": "Chrysoperla carnea",
+    "author": "Didier Descouens",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:(MHNT)_Chrysoperla_carnea_-_dorsal_view.jpg"
+  },
+  "trigona": {
+    "latin": "Trigona spinipes",
+    "author": "José Reynaldo da Fonseca",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Irapu%C3%A3_-_REFON.jpg"
+  },
+  "cataglyphis": {
+    "latin": "Cataglyphis bombycina",
+    "author": "Bjørn Christian Tørrissen",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Saharan_Silver_Ants_Erg_Chebbi_2011.jpg"
+  },
+  "bombushypnorum": {
+    "latin": "Bombus hypnorum",
+    "author": "Charles J. Sharp",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Tree_bumblebee_(Bombus_hypnorum).jpg"
+  },
+  "sphecius": {
+    "latin": "Sphecius speciosus",
+    "author": "Chuck Holliday",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Cicada_Killer_Wasp.jpg"
+  },
+  "dolichovespula": {
+    "latin": "Dolichovespula maculata",
+    "author": "Rhododendrites",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Bald-faced_hornet_(21291).jpg"
+  },
+  "pieris": {
+    "latin": "Pieris rapae",
+    "author": "Sarefo",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Pieris.rapae.mounted.jpg"
+  },
+  "xenos": {
+    "latin": "Xenos vesparum",
+    "author": "Philogéne Wytsman",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Xenos_vesparum.jpg"
+  },
+  "apocephalus": {
+    "latin": "Apocephalus borealis",
+    "author": "Core A, Runckel C, Ivers J, Quock C, Siapno T, et al. (2012). \"A new threat to honey bees, the parasitic phorid fly Apocephalus borealis\". PLoS ONE 7 (1). DOI:10.1371/journal.pone.0029639. Retrieved on 04 January 2012.",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Adult_female_Apocephalus_borealis.png"
+  },
+  "anophelesgambiae": {
+    "latin": "Anopheles gambiae",
+    "author": "James D. Gathany",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:AnophelesGambiaemosquito.jpg"
+  },
+  "pulex": {
+    "latin": "Pulex irritans",
+    "author": "Herms, William Brodbeck (1876-1949)",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:PulexIrritans.jpg"
+  },
+  "trialeurodes": {
+    "latin": "Trialeurodes vaporariorum",
+    "author": "Desmond W. Helmore",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:HEMI_Aleyrodidae_Trialeurodes_vaporariorum.png"
+  },
+  "lygus": {
+    "latin": "Lygus lineolaris",
+    "author": "Rylee Isitt",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Tarnished_Plant_Bug.jpg"
+  },
+  "diaphorina": {
+    "latin": "Diaphorina citri",
+    "author": "David Hall",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Asian_Citrus_Psyllid_adult.jpg"
+  },
+  "thrips": {
+    "latin": "Frankliniella occidentalis",
+    "author": "Frank Peairs, Colorado State University, Bugwood.org",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Frankliniella_occidentalis_5364132-LGPT.jpg"
+  },
+  "megasoma": {
+    "latin": "Megasoma elephas",
+    "author": "Jbjensen1",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Elephant_beetle_pupa_(Megasoma_elephas).jpg"
+  },
+  "pachyrhynchus": {
+    "latin": "Pachyrhynchus congestus",
+    "author": "Sandra H Statner",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Eurhinus_magnificus_115832031.jpg"
+  },
+  "copris": {
+    "latin": "Copris lunaris",
+    "author": "Didier Descouens",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Copris_lunaris._MHNT.jpg"
+  },
+  "apismellifera2": {
+    "latin": "Apis mellifera nutrix",
+    "author": "KatiZora",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Nurse_Bee.png"
+  },
+  "ophiocordyceps": {
+    "latin": "Camponotus leonardi",
+    "author": "Will Ericson",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Casent0901895_p_1_high.jpg"
+  },
+  "melittobia": {
+    "latin": "Melittobia acasta",
+    "author": "Cusumano A, González JM, Colazza S, Vinson SB",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Figure-1-Males-of-Melittobia-parasitoid-wasps-a-M-acasta-b-M-australica-Scale-05.png"
   }
 }

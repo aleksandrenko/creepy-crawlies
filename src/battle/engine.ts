@@ -40,13 +40,29 @@ export interface Unit {
 
 export type Side = 'a' | 'b';
 
+/**
+ * A once-per-battle flask, used instead of the acting unit's skill.
+ *
+ * Spending the turn is the cost: a free full heal would be strictly correct to use the
+ * moment anyone is scratched, and no decision at all.
+ */
+export type FlaskId = 'heal' | 'cleanse';
+
 export interface Move {
   /** Which unit acts. Must match the unit whose turn it is. */
   unitId: string;
   skill: 0 | 1 | 2;
   /** Target unit id. Ignored for skills that pick their own targets. */
   targetId: string | null;
+  /** Set to use a flask this turn instead of a skill. */
+  flask?: FlaskId;
 }
+
+/** Which flasks each side still has. True means unused. */
+export type FlaskStock = Record<Side, Record<FlaskId, boolean>>;
+
+/** Fraction of max HP the healing flask restores to every living ally. */
+export const FLASK_HEAL = 0.5;
 
 /** One visible consequence of a move, for the UI to draw. Never read by the engine. */
 export interface StrikeFx {
@@ -70,6 +86,8 @@ export interface LogEntry {
 export interface BattleState {
   round: number;
   units: Unit[];
+  /** Once-per-battle flasks, per side. Part of the hash, so desyncs are caught. */
+  flasks: FlaskStock;
   /** Whose turn it is. Null once the battle is over. */
   activeUnitId: string | null;
   winner: Side | 'draw' | null;
@@ -139,6 +157,7 @@ export function createBattle(teamA: TeamMember[], teamB: TeamMember[], seed: num
   const state: BattleState = {
     round: 1,
     units,
+    flasks: { a: { heal: true, cleanse: true }, b: { heal: true, cleanse: true } },
     activeUnitId: null,
     winner: null,
     log: [],
@@ -323,6 +342,10 @@ export function applyMove(state: BattleState, move: Move): BattleState {
   const parts: string[] = [];
   const fx: StrikeFx[] = [];
 
+  if (move.flask) {
+    return applyFlask(state, actor, move.flask);
+  }
+
   if (!skillReady(actor, move.skill)) {
     // Illegal move: fall back to skill 0, which never has a cooldown. Both peers do the
     // same thing, so a buggy or hostile client cannot desync the battle this way.
@@ -445,6 +468,56 @@ export function applyMove(state: BattleState, move: Move): BattleState {
   return state;
 }
 
+/**
+ * Spends a flask on the whole living team. Costs the actor its turn, like any other action,
+ * and silently does nothing if that flask is already gone — an out-of-date client must not
+ * be able to push the two peers out of step.
+ */
+function applyFlask(state: BattleState, actor: Unit, flask: FlaskId): BattleState {
+  const stock = state.flasks[actor.side];
+  const touched: string[] = [];
+  const fx: StrikeFx[] = [];
+  let text: string;
+
+  if (!stock[flask]) {
+    text = `${actor.name} reaches for an empty flask`;
+  } else {
+    stock[flask] = false;
+    const team = state.units.filter((u) => u.side === actor.side && alive(u));
+
+    if (flask === 'heal') {
+      let total = 0;
+      for (const unit of team) {
+        const healed = healUnit(unit, unit.maxHp * FLASK_HEAL);
+        if (healed > 0) {
+          total += healed;
+          touched.push(unit.id);
+          fx.push({ unitId: unit.id, amount: healed, kind: 'heal' });
+        }
+      }
+      text = `${actor.name} smashes the Nectar Flask · team healed ${total}`;
+    } else {
+      let cleared = 0;
+      for (const unit of team) {
+        const before = unit.statuses.length;
+        unit.statuses = unit.statuses.filter((st) => !DEBUFFS.has(st.kind));
+        if (unit.statuses.length !== before) {
+          cleared += before - unit.statuses.length;
+          touched.push(unit.id);
+          fx.push({ unitId: unit.id, amount: 0, kind: 'buff' });
+        }
+      }
+      text = `${actor.name} smashes the Clearwater Flask · ${cleared} debuff${cleared === 1 ? '' : 's'} gone`;
+    }
+  }
+
+  actor.acted = true;
+  state.log.push({ round: state.round, text, touched: [...new Set(touched)], actorId: actor.id, fx });
+  endOfTurn(state, actor);
+  advance(state);
+  return state;
+}
+
 function dropFirst(list: Status[], match: (s: Status) => boolean): Status[] {
   const i = list.findIndex(match);
   if (i < 0) return list;
@@ -559,7 +632,14 @@ function totalHp(state: BattleState, side: Side): number {
  * a mismatch means the two simulations have diverged and the battle can no longer be trusted.
  */
 export function stateHash(state: BattleState): string {
-  const parts = [state.round, state.rngCursor, state.winner ?? '-', state.activeUnitId ?? '-'];
+  const parts = [
+    state.round,
+    state.rngCursor,
+    state.winner ?? '-',
+    state.activeUnitId ?? '-',
+    `${state.flasks.a.heal ? 1 : 0}${state.flasks.a.cleanse ? 1 : 0}`,
+    `${state.flasks.b.heal ? 1 : 0}${state.flasks.b.cleanse ? 1 : 0}`,
+  ];
   for (const u of state.units.slice().sort((x, y) => x.id.localeCompare(y.id))) {
     parts.push(
       u.id,

@@ -10,8 +10,10 @@ import {
   activeUnit,
   applyMove,
   createBattle,
+  FLASK_HEAL,
   legalTargets,
   skillReady,
+  type FlaskId,
   type BattleState,
   type Move,
   type Side,
@@ -22,7 +24,7 @@ import { compiled, DEBUFFS, type StatusKind } from '../battle/mechanics';
 import { getSpecies, RARITY_COLOR } from '../content/species';
 import { creatureVisual } from './creature';
 import { el, escapeHtml, qs } from './dom';
-import { floatNumber, markActor, showStrike, type StrikeKind } from './strikeFx';
+import { announceStrike, floatNumber, markActor, showStrike, type StrikeKind } from './strikeFx';
 
 export interface BattleController {
   readonly mySide: Side;
@@ -64,11 +66,17 @@ export function mountBattle(
       </header>
 
       <div class="field field--them"></div>
-      <div class="arena__banner"></div>
+      <div class="arena__middle">
+        <div class="arena__callout" aria-live="polite"></div>
+        <div class="arena__banner"></div>
+      </div>
       <div class="field field--me"></div>
 
       <div class="arena__bottom">
-        <div class="skills-bar"></div>
+        <div class="arena__actions">
+          <div class="skills-bar"></div>
+          <div class="flasks"></div>
+        </div>
         <ol class="combat-log" aria-live="polite"></ol>
       </div>
     </div>
@@ -77,6 +85,7 @@ export function mountBattle(
   const them = qs(root, '.field--them');
   const mine = qs(root, '.field--me');
   const bar = qs(root, '.skills-bar');
+  const flaskBar = qs(root, '.flasks');
   const banner = qs(root, '.arena__banner');
   const logList = qs(root, '.combat-log');
   const roundLabel = qs(root, '.arena__round');
@@ -114,6 +123,7 @@ export function mountBattle(
     }
 
     renderSkills(state, actor);
+    renderFlasks(state, actor);
     renderLog(state);
     markActor(root, state.activeUnitId);
     playPending(state);
@@ -130,17 +140,35 @@ export function mountBattle(
     for (let i = playedFx; i < state.log.length; i++) {
       const entry = state.log[i]!;
       if (!entry.actorId || entry.fx.length === 0) continue;
+
+      const actor = state.units.find((u) => u.id === entry.actorId);
+      const first = entry.fx[0]!;
+      const victim = state.units.find((u) => u.id === first.unitId);
+      const kindOf = (k: string): StrikeKind => (k === 'miss' ? 'hit' : (k as StrikeKind));
+
+      // Name it as well as draw it: the animation carries the drama, the words the detail.
+      if (actor && victim) {
+        const verb = first.kind === 'heal' ? 'mends' : first.kind === 'buff' ? 'bolsters' : 'strikes';
+        const skillName = entry.text.split(' used ')[1]?.split(' · ')[0] ?? '';
+        const target = victim.id === actor.id ? 'itself' : victim.name;
+        announceStrike(
+          root,
+          skillName ? `${actor.name} — ${skillName} → ${target}` : `${actor.name} ${verb} ${target}`,
+          kindOf(first.kind),
+        );
+      }
+
       entry.fx.forEach((fx, n) => {
         setTimeout(() => {
-          const kind: StrikeKind = fx.kind === 'miss' ? 'hit' : fx.kind;
+          const kind = kindOf(fx.kind);
           if (fx.unitId !== entry.actorId) showStrike(root, entry.actorId!, fx.unitId, kind);
           const label = fx.kind === 'miss'
-            ? 'miss'
+            ? 'MISS'
             : fx.amount > 0
               ? `${fx.kind === 'heal' ? '+' : '-'}${fx.amount}`
-              : fx.kind === 'debuff' ? 'debuff' : 'buff';
+              : fx.kind === 'debuff' ? 'DEBUFF' : 'BUFF';
           floatNumber(root, fx.unitId, label, kind);
-        }, n * 130);
+        }, n * 220);
       });
     }
     playedFx = state.log.length;
@@ -245,6 +273,41 @@ export function mountBattle(
     }
   }
 
+  /**
+   * The two once-per-battle flasks. Always visible, so you know they exist and can see at a
+   * glance whether they are still available — hiding a spent one would just be confusing.
+   */
+  function renderFlasks(state: BattleState, actor: Unit | null): void {
+    flaskBar.replaceChildren();
+    const stock = state.flasks[controller.mySide];
+    const usable = !!actor && controller.isMyTurn() && !state.winner;
+
+    const flasks: { id: FlaskId; name: string; blurb: string }[] = [
+      { id: 'heal', name: 'Nectar Flask', blurb: `Heals your whole team ${Math.round(FLASK_HEAL * 100)}%` },
+      { id: 'cleanse', name: 'Clearwater Flask', blurb: 'Clears every debuff from your team' },
+    ];
+
+    for (const flask of flasks) {
+      const left = stock[flask.id];
+      const button = el(`
+        <button class="flask flask--${flask.id}${left ? '' : ' is-spent'}" type="button"
+                ${left && usable ? '' : 'disabled'}
+                title="${escapeHtml(`${flask.name} — ${flask.blurb}. Once per battle, and it costs this unit's turn.`)}">
+          <span class="flask__glass" aria-hidden="true"></span>
+          <span class="flask__name">${escapeHtml(flask.name)}</span>
+          <span class="flask__state">${left ? 'once per battle' : 'used'}</span>
+        </button>
+      `);
+      if (left && usable && actor) {
+        button.addEventListener('click', () => {
+          pendingSkill = null;
+          controller.submit({ unitId: actor.id, skill: 0, targetId: null, flask: flask.id });
+        });
+      }
+      flaskBar.appendChild(button);
+    }
+  }
+
   function renderLog(state: BattleState): void {
     for (let i = renderedLog; i < state.log.length; i++) {
       const entry = state.log[i]!;
@@ -338,7 +401,8 @@ export function skirmishController(myTeam: TeamMember[], foeTeam: TeamMember[], 
       notify();
       check();
       maybeAiTurn();
-    }, 700);
+      // Long enough for the strike animation to finish before the next one starts.
+    }, 1500);
   }
 
   maybeAiTurn();

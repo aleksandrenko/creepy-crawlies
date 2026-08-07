@@ -15,7 +15,7 @@
  * which hid the real problem completely.
  */
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 
@@ -178,8 +178,10 @@ async function downloadWithRetry(url, dest, attempt = 0) {
 
 async function loadSpecies() {
   // Read ids and names straight out of the roster files, so this needs no TS build.
+  // Every file in the folder, not a hardcoded list — a list silently went stale the first
+  // time the roster grew, and the script cheerfully reported nothing to do.
   const dir = path.join(process.cwd(), 'src', 'content', 'roster');
-  const files = ['core.ts', 'strikers.ts', 'strikers2.ts', 'support.ts'];
+  const files = (await readdir(dir)).filter((f) => f.endsWith('.ts')).sort();
   const species = [];
   for (const f of files) {
     const text = await readFile(path.join(dir, f), 'utf8');

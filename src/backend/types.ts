@@ -95,24 +95,26 @@ export interface Backend {
   renameInsect(insectId: string, nickname: string | null): Promise<OwnedInsect>;
 
   /**
-   * Records a finished battle: awards XP, and on a win drops one egg of a random species.
-   * Returns the egg so the outcome screen can announce it.
+   * Records a finished battle: awards XP, and rolls for egg drops. Returns whatever
+   * dropped so the outcome screen can announce it — a win can yield two.
    */
-  recordBattle(result: { won: boolean; opponent: string }): Promise<{ egg: Egg | null; xp: number }>;
+  recordBattle(result: { won: boolean; opponent: string }): Promise<{ eggs: Egg[]; xp: number }>;
 }
 
 /** How many eggs the Hatchery shows in its hollows at once. Holding more is fine. */
 export const HATCHERY_HOLLOWS = 4;
 
 /**
- * Odds of an egg dropping after a battle.
+ * Odds of eggs dropping after a battle.
  *
- * A win is usually rewarded but not always, so the drop stays a moment rather than a
- * wage. A loss pays out rarely — enough that a bad run is never completely wasted, not
- * enough to make losing a strategy.
+ * A win almost always pays, and sometimes pays twice, so the reward feels generous without
+ * ever being guaranteed — there is still a roll to lose. A loss pays rarely, enough that a
+ * bad run is not wasted, not enough to make losing a strategy.
  */
-export const EGG_CHANCE_WIN = 0.65;
-export const EGG_CHANCE_LOSS = 0.08;
+export const EGG_CHANCE_WIN = 0.85;
+/** Chance of a second egg, rolled only if the first one landed. */
+export const EGG_CHANCE_WIN_SECOND = 0.3;
+export const EGG_CHANCE_LOSS = 0.2;
 
 /** XP needed to leave the given profile level. */
 export function xpForLevel(level: number): number {

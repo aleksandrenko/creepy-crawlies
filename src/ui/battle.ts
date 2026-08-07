@@ -124,9 +124,10 @@ function launchSkirmish(state: GameState, refresh: () => Promise<void>): void {
       if (result.won === null) return;
       const reward = await backend.recordBattle({ won: result.won, opponent: 'Wild swarm' });
       announceReward(`+${reward.xp} XP`);
-      if (reward.egg) {
-        announceReward(`Egg found: ${getSpecies(reward.egg.speciesId).name} — hatch it in the Hatchery`);
+      for (const egg of reward.eggs) {
+        announceReward(`Egg: ${getSpecies(egg.speciesId).name} — hatch it in the Hatchery`);
       }
+      if (reward.eggs.length === 0) announceReward('No egg this time');
       await refresh();
     });
   });

@@ -3,14 +3,12 @@ import './ui/styles.css';
 import { backend, HATCHERY_HOLLOWS, type GameState } from './backend';
 import { SPECIES } from './content/species';
 import { Bastion, type BuildingId } from './scene/bastion';
-import { mountAuth } from './ui/auth';
 import { openBattleMenu, openProfile } from './ui/battle';
 import { openCodex } from './ui/codex';
 import { el, escapeHtml, qs } from './ui/dom';
 import { openHatchery } from './ui/hatchery';
 import { Hud } from './ui/hud';
 import { openNest } from './ui/nest';
-import { toast } from './ui/panel';
 
 const app = qs(document, '#app');
 
@@ -62,7 +60,7 @@ class Game {
     this.hud = new Hud(stage, {
       onBattle: () => openBattleMenu(this.state, () => this.refresh()),
       onCodex: () => openCodex(this.state),
-      onProfile: () => openProfile(this.state, () => this.signOut()),
+      onProfile: () => openProfile(this.state, () => void this.reload()),
     });
 
     this.syncView();
@@ -99,46 +97,33 @@ class Game {
     }
   }
 
-  private async signOut(): Promise<void> {
-    await backend.signOut();
+  /** With login off there is nothing to sign out to, so this just reloads the colony. */
+  private async reload(): Promise<void> {
     this.bastion.dispose();
     this.hud.root.remove();
     app.replaceChildren();
-    boot();
+    await main();
   }
 }
 
-function boot(): void {
-  mountAuth(app, async () => {
-    try {
-      await Game.start();
-    } catch (err) {
-      toast('Could not load your colony.', 'error');
-      showFatal('Signed in, but the colony would not load.', err);
-    }
-  });
-}
-
+/**
+ * Login is switched off for now: the game opens straight into whatever colony this
+ * browser is holding, creating one on first run. `ui/auth.ts` is still on disk and
+ * unwired, ready to come back once there is a server to keep accounts on.
+ */
 async function main(): Promise<void> {
-  let existing = null;
   try {
-    existing = await backend.currentUser();
+    await backend.ensureLocalPlayer();
   } catch (err) {
-    // A saved game we cannot read must not silently look like "please sign in".
-    showFatal('Could not read the saved game for this browser.', err);
+    showFatal('Could not read or create the colony stored in this browser.', err);
     return;
   }
 
-  if (existing) {
-    try {
-      await Game.start();
-      return;
-    } catch (err) {
-      showFatal('Your account loaded but the clearing failed to build.', err);
-      return;
-    }
+  try {
+    await Game.start();
+  } catch (err) {
+    showFatal('The colony loaded but the clearing failed to build.', err);
   }
-  boot();
 }
 
 void main();

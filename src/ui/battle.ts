@@ -179,10 +179,11 @@ export function openProfile(state: GameState, onSignOut: () => void): void {
         Joined ${new Date(profile.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.
       </p>
       <p class="notice notice--quiet">
-        This account lives in this browser only. Duels work across two computers without a
-        server, but your colony does not travel with you — that needs a database.
+        Login is off for now, so this colony is simply whatever this browser is holding.
+        Duels work across two computers without a server, but your colony does not travel
+        with you — that needs a database.
       </p>
-      <button class="btn btn--ghost" type="button">Sign out</button>
+      <button class="btn btn--ghost" type="button">Reload the clearing</button>
     </div>
   `);
 

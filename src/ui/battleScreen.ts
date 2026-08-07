@@ -22,6 +22,7 @@ import { compiled, DEBUFFS, type StatusKind } from '../battle/mechanics';
 import { getSpecies } from '../content/species';
 import { creatureVisual } from './creature';
 import { el, escapeHtml, qs } from './dom';
+import { floatNumber, markActor, showStrike, type StrikeKind } from './strikeFx';
 
 export interface BattleController {
   readonly mySide: Side;
@@ -88,6 +89,8 @@ export function mountBattle(
   /** Set while waiting for the player to pick a target for a chosen skill. */
   let pendingSkill: 0 | 1 | 2 | null = null;
   let renderedLog = 0;
+  /** Log entries already animated, so a redraw does not replay old hits. */
+  let playedFx = 0;
 
   function render(): void {
     const state = controller.state();
@@ -112,6 +115,35 @@ export function mountBattle(
 
     renderSkills(state, actor);
     renderLog(state);
+    markActor(root, state.activeUnitId);
+    playPending(state);
+  }
+
+  /**
+   * Animates any log entries that appeared since the last redraw.
+   *
+   * Runs after the cards are rebuilt, because the bolt is measured from where the fighters
+   * actually are on screen. Multiple hits in one move are staggered so a five-hit skill
+   * reads as five strikes rather than one flash.
+   */
+  function playPending(state: BattleState): void {
+    for (let i = playedFx; i < state.log.length; i++) {
+      const entry = state.log[i]!;
+      if (!entry.actorId || entry.fx.length === 0) continue;
+      entry.fx.forEach((fx, n) => {
+        setTimeout(() => {
+          const kind: StrikeKind = fx.kind === 'miss' ? 'hit' : fx.kind;
+          if (fx.unitId !== entry.actorId) showStrike(root, entry.actorId!, fx.unitId, kind);
+          const label = fx.kind === 'miss'
+            ? 'miss'
+            : fx.amount > 0
+              ? `${fx.kind === 'heal' ? '+' : '-'}${fx.amount}`
+              : fx.kind === 'debuff' ? 'debuff' : 'buff';
+          floatNumber(root, fx.unitId, label, kind);
+        }, n * 130);
+      });
+    }
+    playedFx = state.log.length;
   }
 
   function renderSide(host: HTMLElement, state: BattleState, side: Side, activeId: string | null): void {

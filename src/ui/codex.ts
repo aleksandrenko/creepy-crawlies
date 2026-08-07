@@ -16,10 +16,11 @@ import {
   type Species,
 } from '../content/species';
 import { paintSpeciesCard } from './cardArt';
+import { creatureVisual } from './creature';
+import { photoCredit } from './photos';
 import { el, escapeHtml, qs } from './dom';
 import { CLIP_DURATION, clipForSkill, createLivingCard, type LivingCard } from './livingCard';
 import { openPanel } from './panel';
-import { insectSvg } from './silhouette';
 
 export function openCodex(state: GameState): void {
   const discovered = new Set(state.discovered);
@@ -87,7 +88,7 @@ export function openCodex(state: GameState): void {
     const node = el(`
       <button class="codex-entry${known ? '' : ' is-locked'}" type="button"
               style="--rarity:${RARITY_COLOR[species.rarity]}">
-        <span class="codex-entry__art">${insectSvg(species.body, species.palette, { silhouette: !known })}</span>
+        <span class="codex-entry__art">${creatureVisual(species, { silhouette: !known, context: 'card' })}</span>
         <span class="codex-entry__name">${known ? escapeHtml(species.name) : 'Undiscovered'}</span>
         <span class="codex-entry__sub">${known ? escapeHtml(ROLE_LABEL[species.role]) : escapeHtml(BIOME_LABEL[species.biome])}</span>
         <span class="codex-entry__rarity">${escapeHtml(species.rarity)}</span>
@@ -133,7 +134,7 @@ function openEntry(species: Species, known: boolean): void {
   if (!known) {
     const locked = el(`
         <div class="detail detail--locked" style="--rarity:${RARITY_COLOR[species.rarity]}">
-          <div class="detail__art">${insectSvg(species.body, species.palette, { silhouette: true })}</div>
+          <div class="detail__art">${creatureVisual(species, { silhouette: true, context: 'detail' })}</div>
           <p class="detail__tags">
             <span class="tag tag--rarity">${escapeHtml(species.rarity)}</span>
             <span class="tag">${escapeHtml(BIOME_LABEL[species.biome])}</span>
@@ -151,7 +152,7 @@ function openEntry(species: Species, known: boolean): void {
   const detail = el(`
       <div class="detail" style="--rarity:${RARITY_COLOR[species.rarity]}">
         <div class="detail__hero">
-          <div class="detail__art">${insectSvg(species.body, species.palette)}</div>
+          <div class="detail__art">${creatureVisual(species, { context: 'detail' })}</div>
           <div class="detail__meta">
             <p class="detail__tags">
               <span class="tag tag--rarity">${escapeHtml(species.rarity)}</span>
@@ -169,6 +170,7 @@ function openEntry(species: Species, known: boolean): void {
         <section class="detail__section">
           <h3 class="detail__heading">In the real world</h3>
           <p class="detail__fact">${escapeHtml(species.fact)}</p>
+          ${creditMarkup(species.id)}
         </section>
         <section class="detail__section">
           <h3 class="detail__heading">Kit</h3>
@@ -210,4 +212,22 @@ function openEntry(species: Species, known: boolean): void {
       window.setTimeout(() => button.classList.remove('is-playing'), CLIP_DURATION[clip] * 1000);
     });
   });
+}
+
+/**
+ * The photo's attribution line.
+ *
+ * Not optional: the photographs are CC BY or CC BY-SA, which require naming the author and
+ * the licence. Species drawn procedurally have nothing to credit and render nothing.
+ */
+function creditMarkup(speciesId: string): string {
+  const c = photoCredit(speciesId);
+  if (!c) return '';
+  const licence = c.licenseUrl
+    ? `<a href="${escapeHtml(c.licenseUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.license)}</a>`
+    : escapeHtml(c.license);
+  const source = c.source
+    ? ` · <a href="${escapeHtml(c.source)}" target="_blank" rel="noopener noreferrer">source</a>`
+    : '';
+  return `<p class="photo-credit">Photograph by ${escapeHtml(c.author)} — ${licence}${source}</p>`;
 }

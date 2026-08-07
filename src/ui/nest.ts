@@ -4,7 +4,7 @@ import { backend, BackendError, type GameState, type OwnedInsect } from '../back
 import { BIOME_LABEL, getSpecies, RARITY_COLOR, RARITY_ORDER, ROLE_LABEL, type Role } from '../content/species';
 import { el, escapeHtml, qs } from './dom';
 import { openPanel, toast } from './panel';
-import { insectSvg } from './silhouette';
+import { creatureVisual } from './creature';
 
 type SortKey = 'rarity' | 'level' | 'newest' | 'name';
 
@@ -77,7 +77,7 @@ export function openNest(state: GameState, refresh: () => Promise<void>): void {
     const species = getSpecies(insect.speciesId);
     const node = el(`
       <button class="crawly" type="button" style="--rarity:${RARITY_COLOR[species.rarity]}">
-        <span class="crawly__art">${insectSvg(species.body, species.palette)}</span>
+        <span class="crawly__art">${creatureVisual(species, { context: 'detail' })}</span>
         <span class="crawly__level">${insect.level}</span>
         <span class="crawly__name">${escapeHtml(insect.nickname ?? species.name)}</span>
         <span class="crawly__role">${escapeHtml(ROLE_LABEL[species.role])}</span>
@@ -121,7 +121,7 @@ function openDetail(insect: OwnedInsect, refresh: () => Promise<void>, onChanged
   const body = el(`
     <div class="detail" style="--rarity:${RARITY_COLOR[species.rarity]}">
       <div class="detail__hero">
-        <div class="detail__art">${insectSvg(species.body, species.palette)}</div>
+        <div class="detail__art">${creatureVisual(species, { context: 'detail' })}</div>
         <div class="detail__meta">
           <p class="detail__tags">
             <span class="tag tag--rarity">${species.rarity}</span>

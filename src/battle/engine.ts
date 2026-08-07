@@ -48,11 +48,23 @@ export interface Move {
   targetId: string | null;
 }
 
+/** One visible consequence of a move, for the UI to draw. Never read by the engine. */
+export interface StrikeFx {
+  unitId: string;
+  /** Damage or healing. Zero for a pure status change. */
+  amount: number;
+  kind: 'hit' | 'heal' | 'buff' | 'debuff' | 'miss';
+}
+
 export interface LogEntry {
   round: number;
   text: string;
   /** Units whose HP changed, for the UI to flash. */
   touched: string[];
+  /** Who acted, so the UI can draw the strike from the right place. */
+  actorId: string | null;
+  /** What the move did, structured — the UI must not have to parse `text`. */
+  fx: StrikeFx[];
 }
 
 export interface BattleState {
@@ -309,6 +321,7 @@ export function applyMove(state: BattleState, move: Move): BattleState {
   const species = compiled(actor.speciesId);
   const touched: string[] = [];
   const parts: string[] = [];
+  const fx: StrikeFx[] = [];
 
   if (!skillReady(actor, move.skill)) {
     // Illegal move: fall back to skill 0, which never has a cooldown. Both peers do the
@@ -331,6 +344,7 @@ export function applyMove(state: BattleState, move: Move): BattleState {
       target.statuses = [];
       target.cooldowns = [0, 0, 0];
       touched.push(target.id);
+      fx.push({ unitId: target.id, amount: 0, kind: 'heal' });
       parts.push(`revived ${target.name}`);
       continue;
     }
@@ -343,6 +357,7 @@ export function applyMove(state: BattleState, move: Move): BattleState {
           ? 0
           : Math.min(0.5, magnitudeOf(target, 'dodgeUp') / 100 + magnitudeOf(actor, 'accDown') / 200);
         if (dodgeChance > 0 && next(state) < dodgeChance) {
+          fx.push({ unitId: target.id, amount: 0, kind: 'miss' });
           parts.push(`${target.name} dodged`);
           continue;
         }
@@ -355,6 +370,7 @@ export function applyMove(state: BattleState, move: Move): BattleState {
         const dealt = damageUnit(target, base * variance * (crit ? 1.6 : 1));
         dealtTotal += dealt;
         touched.push(target.id);
+        fx.push({ unitId: target.id, amount: dealt, kind: 'hit' });
         parts.push(`${crit ? 'crit ' : ''}${dealt} to ${target.name}`);
       }
 
@@ -369,11 +385,13 @@ export function applyMove(state: BattleState, move: Move): BattleState {
       const healed = healUnit(target, target.maxHp * chosenMechanic.heal);
       if (healed > 0) {
         touched.push(target.id);
+        fx.push({ unitId: target.id, amount: healed, kind: 'heal' });
         parts.push(`healed ${target.name} ${healed}`);
       }
     }
     if (chosenMechanic.shield) {
       applyStatus(target, { kind: 'shield', turns: 3, magnitude: chosenMechanic.shield * 100 }, actor);
+      fx.push({ unitId: target.id, amount: 0, kind: 'buff' });
       parts.push(`shielded ${target.name}`);
     }
     if (chosenMechanic.cleanse) {
@@ -392,6 +410,7 @@ export function applyMove(state: BattleState, move: Move): BattleState {
     }
     for (const spec of chosenMechanic.applies ?? []) {
       applyStatus(target, spec, actor);
+      fx.push({ unitId: target.id, amount: 0, kind: DEBUFFS.has(spec.kind) ? 'debuff' : 'buff' });
       parts.push(`${spec.kind} on ${target.name}`);
     }
   }
@@ -400,18 +419,26 @@ export function applyMove(state: BattleState, move: Move): BattleState {
     const healed = healUnit(actor, dealtTotal * chosenMechanic.drain);
     if (healed > 0) {
       touched.push(actor.id);
+      fx.push({ unitId: actor.id, amount: healed, kind: 'heal' });
       parts.push(`drained ${healed}`);
     }
   }
   for (const spec of chosenMechanic.selfApplies ?? []) {
     applyStatus(actor, spec, actor);
+    fx.push({ unitId: actor.id, amount: 0, kind: DEBUFFS.has(spec.kind) ? 'debuff' : 'buff' });
     parts.push(`${spec.kind} on self`);
   }
 
   actor.cooldowns[move.skill] = chosenSkill.cooldown;
   actor.acted = true;
 
-  state.log.push({ round: state.round, text: parts.join(' · '), touched: [...new Set(touched)] });
+  state.log.push({
+    round: state.round,
+    text: parts.join(' · '),
+    touched: [...new Set(touched)],
+    actorId: actor.id,
+    fx,
+  });
 
   endOfTurn(state, actor);
   advance(state);
@@ -457,7 +484,13 @@ function endOfTurn(state: BattleState, unit: Unit): void {
   unit.statuses = unit.statuses.filter((s) => s.turns > 0 || (s.kind === 'shield' && (s.pool ?? 0) > 0));
 
   if (notes.length > 0) {
-    state.log.push({ round: state.round, text: `${unit.name}: ${notes.join(', ')}`, touched: [unit.id] });
+    state.log.push({
+      round: state.round,
+      text: `${unit.name}: ${notes.join(', ')}`,
+      touched: [unit.id],
+      actorId: null,
+      fx: [],
+    });
   }
 }
 
@@ -499,6 +532,8 @@ function advance(state: BattleState): void {
         round: state.round,
         text: `${actor.name} cannot act (${has(actor, 'stun') ? 'stunned' : 'asleep'})`,
         touched: [],
+        actorId: actor.id,
+        fx: [],
       });
       actor.acted = true;
       endOfTurn(state, actor);

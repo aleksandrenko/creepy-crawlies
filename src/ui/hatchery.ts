@@ -9,7 +9,7 @@ import { backend, BackendError, EGG_SOURCE_LABEL, type Egg, type GameState } fro
 import { BIOME_LABEL, getSpecies, RARITY_COLOR, ROLE_LABEL } from '../content/species';
 import { el, escapeHtml, qs } from './dom';
 import { openPanel, toast } from './panel';
-import { insectSvg } from './silhouette';
+import { creatureVisual } from './creature';
 
 export function openHatchery(state: GameState, refresh: () => Promise<void>): void {
   const panel = openPanel({
@@ -51,7 +51,7 @@ export function openHatchery(state: GameState, refresh: () => Promise<void>): vo
       <div class="egg-card" style="--rarity:${RARITY_COLOR[species.rarity]}">
         <div class="egg-card__egg" aria-hidden="true">
           <span class="egg-card__shine"></span>
-          <span class="egg-card__inside">${insectSvg(species.body, species.palette)}</span>
+          <span class="egg-card__inside">${creatureVisual(species, { context: 'egg' })}</span>
         </div>
         <p class="egg-card__name">${escapeHtml(species.name)}</p>
         <p class="egg-card__tags">
@@ -98,7 +98,7 @@ function showHatchReveal(speciesId: string, firstTime: boolean): void {
   reveal.body.appendChild(
     el(`
       <div class="reveal" style="--rarity:${RARITY_COLOR[species.rarity]}">
-        <div class="reveal__art">${insectSvg(species.body, species.palette)}</div>
+        <div class="reveal__art">${creatureVisual(species, { context: 'egg' })}</div>
         <h3 class="reveal__name">${escapeHtml(species.name)}</h3>
         <p class="reveal__tags">
           <span class="tag tag--rarity">${escapeHtml(species.rarity)}</span>

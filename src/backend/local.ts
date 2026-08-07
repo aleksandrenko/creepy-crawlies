@@ -10,6 +10,8 @@
 import { RARITY_ORDER, SPECIES, type Rarity } from '../content/species';
 import {
   BackendError,
+  EGG_CHANCE_LOSS,
+  EGG_CHANCE_WIN,
   type Backend,
   type Egg,
   type EggSource,
@@ -231,6 +233,50 @@ export class LocalBackend implements Backend {
     return this.state(user.id).profile;
   }
 
+  /**
+   * The no-login path: reuse this browser's player, or make one on first run.
+   *
+   * Registered in the same users map as a real account so every other method works
+   * unchanged, but with an unguessable hash and no salt, so nobody can sign into it with
+   * a password. When accounts come back, this becomes the thing you upgrade.
+   */
+  async ensureLocalPlayer(): Promise<Profile> {
+    const existing = await this.currentUser();
+    if (existing) return existing;
+
+    const users = this.users();
+    const device = Object.values(users).find((u) => u.email.endsWith('@device.local'));
+    if (device) {
+      localStorage.setItem(K_SESSION, device.id);
+      return this.state(device.id).profile;
+    }
+
+    const id_ = id('usr');
+    const user: StoredUser = {
+      id: id_,
+      email: `${id_}@device.local`,
+      handle: 'Keeper',
+      salt: '',
+      hash: toHex(crypto.getRandomValues(new Uint8Array(32)).buffer),
+      createdAt: Date.now(),
+    };
+    users[user.email] = user;
+    write(K_USERS, users);
+
+    const profile: Profile = {
+      id: user.id,
+      email: user.email,
+      handle: user.handle,
+      level: 1,
+      xp: 0,
+      motes: 150,
+      createdAt: user.createdAt,
+    };
+    this.save(user.id, starterState(profile));
+    localStorage.setItem(K_SESSION, user.id);
+    return profile;
+  }
+
   async signUp(email: string, password: string, handle: string): Promise<Profile> {
     const key = normaliseEmail(email);
     if (!key.includes('@')) throw new BackendError('That does not look like an email address.');
@@ -335,8 +381,9 @@ export class LocalBackend implements Backend {
     state.profile = grantXp(state.profile, xp);
     state.profile = { ...state.profile, motes: state.profile.motes + (result.won ? 40 : 10) };
 
-    // Eggs are the win reward, and the species inside is the random part.
-    const egg = result.won ? makeEgg(rollEggSpecies(), 'battle') : null;
+    // An egg is a chance, not a wage — and a loss is still worth playing out.
+    const chance = result.won ? EGG_CHANCE_WIN : EGG_CHANCE_LOSS;
+    const egg = Math.random() < chance ? makeEgg(rollEggSpecies(), 'battle') : null;
     if (egg) state.eggs.push(egg);
 
     this.save(user.id, state);

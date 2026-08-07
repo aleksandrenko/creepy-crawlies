@@ -1,19 +1,21 @@
 /**
  * The one place that decides how an insect is drawn.
  *
- * Right now it renders the procedural SVG in `silhouette.ts`. A LivingCard module is
- * being written separately to replace it, and later that may become 3D. Every screen
- * goes through here precisely so that swap touches this file and nothing else —
- * do not call `insectSvg` directly from a screen.
+ * A real photograph whenever we hold one we are allowed to ship, and the procedural
+ * drawing in `silhouette.ts` for the handful of species where we do not. Every screen goes
+ * through here so that swap — and the animated `livingCard` treatment — touches this file
+ * and not each screen in turn. Do not call `insectSvg` or build an `<img>` directly.
  */
 
 import type { Species } from '../content/species';
+import { escapeHtml } from './dom';
+import { hasPhoto, photoUrl } from './photos';
 import { insectSvg } from './silhouette';
 
 export interface CreatureOptions {
   /**
    * Draw the shape only, with no colour — used for undiscovered Codex entries.
-   * A replacement renderer must honour this or locked entries will leak their species.
+   * A replacement renderer must honour this or locked entries leak their species.
    */
   silhouette?: boolean;
   /** Where it is being shown. A richer renderer can use this to pick a level of detail. */
@@ -22,5 +24,21 @@ export interface CreatureOptions {
 
 /** Returns markup for the creature's visual, sized to fill its container. */
 export function creatureVisual(species: Species, opts: CreatureOptions = {}): string {
-  return insectSvg(species.body, species.palette, { silhouette: opts.silhouette === true });
+  const locked = opts.silhouette === true;
+
+  if (hasPhoto(species.id)) {
+    // `loading="lazy"` matters: the Codex shows 68 of these at once.
+    return (
+      `<img class="creature-photo${locked ? ' is-locked' : ''}" ` +
+      `src="${photoUrl(species.id)}" alt="${escapeHtml(locked ? 'Undiscovered species' : species.name)}" ` +
+      `loading="lazy" decoding="async" draggable="false" />`
+    );
+  }
+
+  return insectSvg(species.body, species.palette, { silhouette: locked });
+}
+
+/** True when this species falls back to the drawing, so callers can style accordingly. */
+export function isDrawn(species: Species): boolean {
+  return !hasPhoto(species.id);
 }

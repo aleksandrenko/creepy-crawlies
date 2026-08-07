@@ -73,6 +73,16 @@ export class BackendError extends Error {
 export interface Backend {
   /** Resolves to the signed-in session, or null. Called once at boot. */
   currentUser(): Promise<Profile | null>;
+
+  /**
+   * Returns the player stored on this machine, creating one on first run.
+   *
+   * Login is switched off for now, so the game opens straight into whatever this browser
+   * already has. `signUp`/`signIn` stay on the interface because accounts come back the
+   * moment there is a server to hold them — see [[auth.ts]], still on disk and unwired.
+   */
+  ensureLocalPlayer(): Promise<Profile>;
+
   signUp(email: string, password: string, handle: string): Promise<Profile>;
   signIn(email: string, password: string): Promise<Profile>;
   signOut(): Promise<void>;
@@ -93,6 +103,16 @@ export interface Backend {
 
 /** How many eggs the Hatchery shows in its hollows at once. Holding more is fine. */
 export const HATCHERY_HOLLOWS = 4;
+
+/**
+ * Odds of an egg dropping after a battle.
+ *
+ * A win is usually rewarded but not always, so the drop stays a moment rather than a
+ * wage. A loss pays out rarely — enough that a bad run is never completely wasted, not
+ * enough to make losing a strategy.
+ */
+export const EGG_CHANCE_WIN = 0.65;
+export const EGG_CHANCE_LOSS = 0.08;
 
 /** XP needed to leave the given profile level. */
 export function xpForLevel(level: number): number {

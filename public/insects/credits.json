@@ -1,0 +1,443 @@
+{
+  "bombardier": {
+    "latin": "Brachinus crepitans",
+    "author": "Hectonichus",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Carabidae_-_Brachinus_crepitans.JPG"
+  },
+  "bulletant": {
+    "latin": "Paraponera clavata",
+    "author": "Hans Hillewaert",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Paraponera_clavata.jpg"
+  },
+  "morosa": {
+    "latin": "Carausius morosus",
+    "author": "Fußpunktmaler",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Indische_Stabschrecke_auf_einem_Himbeerblatt_im_Terrarium.jpg"
+  },
+  "mantis": {
+    "latin": "Mantis religiosa",
+    "author": "Charles J. Sharp",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:European_praying_mantis_(Mantis_religiosa)_green_female_Dobruja.jpg"
+  },
+  "taurus": {
+    "latin": "Onthophagus taurus",
+    "author": "(c) Don Loarie, some rights reserved (CC BY)",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Bull-headed_Dung_Beetle_imported_from_iNaturalist_photo_308636278_on_6_August_2024.jpg"
+  },
+  "pepsis": {
+    "latin": "Pepsis grossa",
+    "author": "Niklas299",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Pepsis_grossa_(cropped).jpg"
+  },
+  "anax": {
+    "latin": "Anax imperator",
+    "author": "Quartl",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Anax_imperator_qtl2.jpg"
+  },
+  "lethocerus": {
+    "latin": "Lethocerus deyrollei",
+    "author": "OpenCage",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Lethocerus_deyrollei.jpg"
+  },
+  "odontomachus": {
+    "latin": "Odontomachus bauri",
+    "author": "April Nobile",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Odontomachus_bauri_casent0172629_profile_1.jpg"
+  },
+  "phloeodes": {
+    "latin": "Phloeodes diabolicus",
+    "author": "Jesse Rorabaugh",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Phloeodes_diabolicus.jpg"
+  },
+  "magicicada": {
+    "latin": "Magicicada septendecim",
+    "author": "peterwchen",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Magicicada_septendecim-female_ventral.jpg"
+  },
+  "atropos": {
+    "latin": "Acherontia atropos",
+    "author": "Didier Descouens",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Acherontia_atropos_MHNT_dos.jpg"
+  },
+  "apis": {
+    "latin": "Apis mellifera",
+    "author": "Andreas Trepte",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Apis_mellifera_Western_honey_bee.jpg"
+  },
+  "ctenocephalides": {
+    "latin": "Ctenocephalides felis",
+    "author": "Andrei Savitsky",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:%D0%9A%D0%BE%D1%88%D0%B0%D1%87%D1%8C%D1%8F_%D0%B1%D0%BB%D0%BE%D1%85%D0%B0.jpg"
+  },
+  "formicaruf": {
+    "latin": "Formica rufa",
+    "author": "Richard Bartz, Munich Makro Freak",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:A_Formica_rufa_sideview.jpg"
+  },
+  "mandarinia": {
+    "latin": "Vespa mandarinia",
+    "author": "Gary Alpert",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Vespa_mandarinia.jpg"
+  },
+  "eciton": {
+    "latin": "Eciton burchellii",
+    "author": "April Nobile",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Eciton_burchellii_casent0009218_profile_1.jpg"
+  },
+  "myrmeleon": {
+    "latin": "Myrmeleon formicarius",
+    "author": "Gilles San Martin from Namur, Belgium",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Myrmeleon_formicarius_(9564014813).jpg"
+  },
+  "platymeris": {
+    "latin": "Platymeris biguttatus",
+    "author": "Photo by Greg Hume (Greg5030)",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Platymeris_biguttatus.jpg"
+  },
+  "titanus": {
+    "latin": "Titanus giganteus",
+    "author": "Didier Descouens",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Titanus_giganteus_MHNT.jpg"
+  },
+  "hercules": {
+    "latin": "Dynastes hercules",
+    "author": "Didier Descouens",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Dynastes_hercules_ecuatorianus_MHNT.jpg"
+  },
+  "lucanus": {
+    "latin": "Lucanus cervus",
+    "author": "J.F. Gaffard",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Lucanus_cervus.jpg"
+  },
+  "promachus": {
+    "latin": "Promachus rufipes",
+    "author": "Zeynel Cebeci",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Cannibalfly_-_Katilsinek_01.jpg"
+  },
+  "cicindela": {
+    "latin": "Cicindela campestris",
+    "author": "Charles J. Sharp",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Green_tiger_beetle_(Cicindela_campestris)_Sweden.jpg"
+  },
+  "ocypus": {
+    "latin": "Ocypus olens",
+    "author": "Quartl",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Ocypus_olens_qtl1.jpg"
+  },
+  "crabro": {
+    "latin": "Vespa crabro",
+    "author": "Filippo Turetta",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:VespaCrabroCollezione.jpg"
+  },
+  "notonecta": {
+    "latin": "Notonecta glauca",
+    "author": "Holger Gröschl",
+    "license": "CC BY-SA 2.0 de",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/de/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Notonecta_glauca1.jpg"
+  },
+  "nepa": {
+    "latin": "Nepa cinerea",
+    "author": "Unknown",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Nepa_cinerea01.jpg"
+  },
+  "bombyx": {
+    "latin": "Bombyx mori",
+    "author": "Oakenking at en.wikipedia",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Pairedmoths.jpg"
+  },
+  "episyrphus": {
+    "latin": "Episyrphus balteatus",
+    "author": "Charles J. Sharp",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Marmalade_hoverfly_(Episyrphus_balteatus)_male_Wengen_2.jpg"
+  },
+  "acyrthosiphon": {
+    "latin": "Acyrthosiphon pisum",
+    "author": "Shipher Wu (photograph) and Gee-way Lin (aphid provision), National Taiwan University",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Acyrthosiphon_pisum_(pea_aphid)-PLoS.jpg"
+  },
+  "halyomorpha": {
+    "latin": "Halyomorpha halys",
+    "author": "Hectonichus",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Pentatomidae_-_Halyomorpha_halys-001.JPG"
+  },
+  "lytta": {
+    "latin": "Lytta vesicatoria",
+    "author": "Franco christophe",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Lytta-vesicatoria.jpg"
+  },
+  "pediculus": {
+    "latin": "Pediculus humanus capitis",
+    "author": "Gilles San Martin",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Male_human_head_louse.jpg"
+  },
+  "deinacrida": {
+    "latin": "Deinacrida heteracantha",
+    "author": "Auckland Museum",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Deinacrida_heteracantha_(female)_Holotype_specimen_from_the_Auckland_Museum.jpg"
+  },
+  "corydalus": {
+    "latin": "Corydalus cornutus",
+    "author": "Didier Descouens",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Corydalus_cornutus_MHNT_male.jpg"
+  },
+  "dasymutilla": {
+    "latin": "Dasymutilla occidentalis",
+    "author": "Judy Gallagher",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Dasymutilla_occidentalis_(female).jpg"
+  },
+  "gryllotalpa": {
+    "latin": "Gryllotalpa gryllotalpa",
+    "author": "Eszter Kovács",
+    "license": "CC BY-SA 2.0 de",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/de/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Gryllotalpa_gryllotalpa_vorne-oben.jpg"
+  },
+  "aeshna": {
+    "latin": "Aeshna cyanea",
+    "author": "Ebertakis",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Southern_Hawker_Dragonfly_Bavaria_Germany.jpg"
+  },
+  "goliathus": {
+    "latin": "Goliathus goliatus",
+    "author": "Didier Descouens",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Goliathus_goliatus_vol.jpg"
+  },
+  "chalcosoma": {
+    "latin": "Chalcosoma atlas",
+    "author": "MathKnight and Dr. Zachi Evenor",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Atlas_Beetle_-_Zachi_Evenor.jpg"
+  },
+  "allomyrina": {
+    "latin": "Allomyrina dichotoma",
+    "author": "Gombe at Japanese Wikipedia",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+    "source": "https://commons.wikimedia.org/wiki/File:Kabutomushi-JapaneseBeetle-July2004.jpg"
+  },
+  "gryllus": {
+    "latin": "Gryllus bimaculatus",
+    "author": "Arpingstone",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:African.field.cricket.arp.jpg"
+  },
+  "solenopsis": {
+    "latin": "Solenopsis invicta",
+    "author": "Stephen Ausmus",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Fire_ants_01.jpg"
+  },
+  "myrmecia": {
+    "latin": "Myrmecia pyriformis",
+    "author": "Narendra A, Reid SF, Raderschall CA (2013)",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Myrmecia_pyriformis_-_journal.pone.0058801.g001.png"
+  },
+  "mantispa": {
+    "latin": "Mantispa styriaca",
+    "author": "Gilles San Martin from Namur, Belgium",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Mantispa_styriaca_(9566952168).jpg"
+  },
+  "lonomia": {
+    "latin": "Lonomia obliqua",
+    "author": "Centro de Informações Toxicológicas de Santa Catarina",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Lonomia-obliqua-citsc-1.jpg"
+  },
+  "dytiscus": {
+    "latin": "Dytiscus marginalis",
+    "author": "photo by E van Herk (User Evanherk) on en.wikipedia",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Geelgerande02.jpg"
+  },
+  "myrmecocystus": {
+    "latin": "Myrmecocystus mexicanus",
+    "author": "Unknown",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Myrmecocystus_mexicanus_casent0005421_profile_1.jpg"
+  },
+  "macrotermes": {
+    "latin": "Macrotermes bellicosus",
+    "author": "ETF89",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Macrotermes_bellicosus_minor_soldier.jpg"
+  },
+  "bombus": {
+    "latin": "Bombus terrestris",
+    "author": "Marco Almbauer",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Bombus_terrestris.jpg"
+  },
+  "tetragonula": {
+    "latin": "Tetragonula carbonaria",
+    "author": "James Niland",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Sugarbag_bee.jpg"
+  },
+  "coccinella": {
+    "latin": "Coccinella septempunctata",
+    "author": "Photographer: Dominik Stodulski Graphic Processing: User:MathKnight",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:7-Spotted-Ladybug-Coccinella-septempunctata-sq1.jpg"
+  },
+  "lampyris": {
+    "latin": "Lampyris noctiluca",
+    "author": "Hectonichus",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Lampyridae_-_Lampyris_noctiluca.JPG"
+  },
+  "camponotus": {
+    "latin": "Camponotus ligniperda",
+    "author": "April Nobile",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Camponotus_ligniperda_casent0173649_profile_1.jpg"
+  },
+  "osmia": {
+    "latin": "Osmia bicornis",
+    "author": "André Karwath aka Aka",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Osmia_rufa_couple_(aka).jpg"
+  },
+  "galleria": {
+    "latin": "Galleria mellonella",
+    "author": "dhobern",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Galleria_mellonella_1.jpg"
+  },
+  "polistes": {
+    "latin": "Polistes dominula",
+    "author": "Judy Gallagher",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:European_Paper_Wasp_-_Polistes_dominula,_Saanichton,_British_Columbia,_August_5,_2016_(53552917108).jpg"
+  },
+  "ampulex": {
+    "latin": "Ampulex compressa",
+    "author": "Sharadpunita",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Emerald_Cockroach_Wasp.JPG"
+  },
+  "cimex": {
+    "latin": "Cimex lectularius",
+    "author": "AJC1 from UK",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Bed_bug,_Cimex_lectularius_(9627010587).jpg"
+  },
+  "dermatobia": {
+    "latin": "Dermatobia hominis",
+    "author": "J. Eibl, U.S. Department of Agriculture",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:D._hominis_adult_female.png"
+  },
+  "glossina": {
+    "latin": "Glossina morsitans",
+    "author": "Estefanía Alonso Gómez",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Glossina_morsitans_morsitans_(white_paper).jpeg"
+  },
+  "andricus": {
+    "latin": "Andricus kollari",
+    "author": "TristramBrelstaff",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Hymenoptera-Cynipidae-Andricus-kollari-201408230042.JPG"
+  }
+}

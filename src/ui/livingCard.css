@@ -1,0 +1,61 @@
+/* Living card presentation. Kept in its own file so the shared stylesheet stays untouched. */
+
+/* The host gets the perspective; the card itself is what moves inside it. */
+.detail__art--living {
+  width: 152px;
+  height: 228px;
+  perspective: 700px;
+  overflow: visible;
+  filter: none; /* the shader draws its own rim light and glow */
+}
+
+.living-card {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  transform: var(--living-card-transform, none);
+  transform-style: preserve-3d;
+  will-change: transform;
+  box-shadow:
+    0 14px 34px -10px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 0 24px -6px var(--rarity, transparent);
+}
+
+.living-card canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Skill rows become the ability triggers for the card above them. */
+.skill--playable {
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease;
+}
+
+.skill--playable:hover,
+.skill--playable:focus-visible {
+  border-color: var(--rarity);
+  background: rgba(0, 0, 0, 0.34);
+}
+
+.skill--playable:active {
+  transform: translateY(1px);
+}
+
+.skill--playable.is-playing {
+  border-color: var(--rarity);
+  box-shadow: inset 0 0 0 1px var(--rarity);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .living-card {
+    transform: none;
+  }
+}

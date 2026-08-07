@@ -133,6 +133,35 @@ async function findLicences(files) {
   return out;
 }
 
+/**
+ * Last resort for species whose Wikipedia lead image is missing or badly licensed:
+ * search Commons itself for a freely licensed photo of the genus.
+ *
+ * Commons search hits are far less reliable than a curated lead image — you can get a
+ * diagram, a specimen drawer, or the wrong species entirely — so this only runs for the
+ * handful that the normal path could not serve, and the licence filter still applies.
+ */
+async function searchCommons(term) {
+  const url =
+    'https://commons.wikimedia.org/w/api.php?action=query&format=json&formatversion=2' +
+    '&list=search&srnamespace=6&srlimit=8&srsearch=' +
+    encodeURIComponent(`${term} filetype:bitmap`);
+  const data = await api(url).catch(() => null);
+  const hits = (data?.query?.search ?? [])
+    .map((h) => h.title.replace(/^File:/, ''))
+    .filter((f) => /\.(jpe?g|png)$/i.test(f))
+    // Diagrams, maps and plates are common in these results and are not what we want.
+    .filter((f) => !/(map|diagram|distribution|plate|drawing|illustration|stamp|logo)/i.test(f));
+  if (hits.length === 0) return null;
+
+  const licences = await findLicences(hits);
+  for (const file of hits) {
+    const lic = licences.get(file);
+    if (lic && isAllowed(lic)) return { file, lic };
+  }
+  return null;
+}
+
 /** The image CDN throttles bursts too, so downloads need the same patience as the API. */
 async function downloadWithRetry(url, dest, attempt = 0) {
   const res = await fetch(url, { headers: { 'User-Agent': UA } });
@@ -217,8 +246,33 @@ for (const pick of picks.values()) {
   await sleep(600);
 }
 
-for (const s of todo) {
-  if (!picks.has(s.id)) skipped.push(`${s.id} — no image on Wikipedia for "${s.latin}" or "${s.name}"`);
+// Anything the normal path could not serve gets one attempt at a Commons search.
+const stragglers = todo.filter((s) => !credits[s.id]);
+if (stragglers.length) {
+  console.log(`\nsearching Commons for ${stragglers.length} stragglers…`);
+  for (const s of stragglers) {
+    const hit = (await searchCommons(s.latin)) ?? (await searchCommons(s.name));
+    if (!hit) {
+      skipped.push(`${s.id} — nothing freely licensed found for "${s.latin}" or "${s.name}"`);
+      continue;
+    }
+    try {
+      await downloadWithRetry(hit.lic.url, path.join(OUT_DIR, `${s.id}.jpg`));
+    } catch (err) {
+      skipped.push(`${s.id} — download failed: ${err.message}`);
+      continue;
+    }
+    credits[s.id] = {
+      latin: s.latin,
+      author: hit.lic.author,
+      license: hit.lic.licenseName,
+      licenseUrl: hit.lic.licenseUrl,
+      source: hit.lic.descriptionUrl,
+    };
+    kept++;
+    console.log(`  ok  ${s.id.padEnd(18)} ${hit.lic.licenseName.padEnd(14)} ${hit.lic.author.slice(0, 34)} (via search)`);
+    await sleep(800);
+  }
 }
 
 await writeFile(CREDITS, `${JSON.stringify(credits, null, 2)}\n`);

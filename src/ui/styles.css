@@ -832,10 +832,12 @@ button {
 }
 
 .reveal__art {
-  width: 150px;
-  height: 200px;
+  width: 200px;
+  aspect-ratio: 1;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  border-radius: 14px;
   filter: drop-shadow(0 0 26px var(--rarity));
   animation: reveal-in 700ms cubic-bezier(0.2, 0.9, 0.25, 1);
 }
@@ -950,10 +952,14 @@ button {
 
 .crawly__art,
 .codex-entry__art {
-  width: 76px;
-  height: 100px;
+  width: 84px;
+  /* Square, because the photos are square — a portrait slot would crop them again. */
+  aspect-ratio: 1;
+  height: auto;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  border-radius: 9px;
 }
 
 .crawly__level {
@@ -1057,10 +1063,12 @@ button {
 }
 
 .detail__art {
-  width: 120px;
-  height: 160px;
+  width: 168px;
+  aspect-ratio: 1;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
   filter: drop-shadow(0 0 18px var(--rarity));
 }
 
@@ -1441,17 +1449,34 @@ button {
   gap: 0.3rem;
   width: 9.5rem;
   padding: 0.6rem 0.5rem;
-  border: 1px solid var(--edge);
+  /* Rarity is the border, not a stripe: it should be readable from across the screen. */
+  border: 2px solid var(--rarity, var(--edge));
   border-radius: var(--radius);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.32));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--rarity, #888) 14%, transparent), rgba(0, 0, 0, 0.42));
+  box-shadow: 0 0 14px -4px color-mix(in srgb, var(--rarity, #888) 60%, transparent);
   transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
+/* Legendary gets a slow shimmer so the best unit on the field stands out. */
+.fighter[data-rarity='legendary'] {
+  animation: legendary-glow 3.2s ease-in-out infinite;
+}
+
+@keyframes legendary-glow {
+  0%, 100% { box-shadow: 0 0 14px -4px rgba(232, 161, 58, 0.6); }
+  50% { box-shadow: 0 0 22px 0 rgba(232, 161, 58, 0.85); }
+}
+
 .fighter__art {
-  width: 62px;
-  height: 82px;
+  width: 72px;
+  aspect-ratio: 1;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  border-radius: 9px;
+  /* A ring in the rarity colour, so the card reads as common/epic/legendary at a glance. */
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--rarity, #888) 55%, transparent);
 }
 
 .fighter__body {
@@ -1524,9 +1549,9 @@ button {
   color: #cfe08a;
 }
 
+/* Whose turn it is has to beat the rarity ring without hiding it. */
 .fighter.is-active {
-  border-color: var(--amber);
-  box-shadow: 0 0 0 1px rgba(232, 161, 58, 0.35), 0 0 26px rgba(232, 161, 58, 0.22);
+  box-shadow: 0 0 0 3px rgba(232, 161, 58, 0.55), 0 0 30px -2px rgba(232, 161, 58, 0.45);
 }
 
 .fighter.is-down {
@@ -1728,10 +1753,12 @@ button {
 }
 
 .picker__slot-art {
-  width: 52px;
-  height: 68px;
+  width: 60px;
+  aspect-ratio: 1;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  border-radius: 9px;
 }
 
 .picker__slot-name {

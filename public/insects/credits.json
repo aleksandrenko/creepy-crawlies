@@ -439,5 +439,40 @@
     "license": "CC BY-SA 4.0",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "https://commons.wikimedia.org/wiki/File:Hymenoptera-Cynipidae-Andricus-kollari-201408230042.JPG"
+  },
+  "idolomantis": {
+    "latin": "Idolomantis diabolica",
+    "author": "Drägüs",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Idolomantis_diabolica-subadult_female.JPG"
+  },
+  "vespula": {
+    "latin": "Vespula germanica",
+    "author": "Richard Bartz, Munich aka Makro Freak",
+    "license": "CC BY-SA 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+    "source": "https://commons.wikimedia.org/wiki/File:Vespula_germanica_Richard_Bartz.jpg"
+  },
+  "dorylus": {
+    "latin": "Dorylus nigricans",
+    "author": "April Nobile",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Dorylus_nigricans_casent0172641_profile_1.jpg"
+  },
+  "oecophylla": {
+    "latin": "Oecophylla smaragdina",
+    "author": "Basile Morin",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Nest_of_oecophylla_smaragdina_(weaver_ants).jpg"
+  },
+  "pseudacteon": {
+    "latin": "Pseudacteon tricuspis",
+    "author": "Sanford Porter",
+    "license": "Public domain",
+    "licenseUrl": "",
+    "source": "https://commons.wikimedia.org/wiki/File:Ant_decapitated_by_a_parassitoid.jpg"
   }
 }

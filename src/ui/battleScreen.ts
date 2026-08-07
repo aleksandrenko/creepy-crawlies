@@ -19,7 +19,7 @@ import {
   type Unit,
 } from '../battle/engine';
 import { compiled, DEBUFFS, type StatusKind } from '../battle/mechanics';
-import { getSpecies } from '../content/species';
+import { getSpecies, RARITY_COLOR } from '../content/species';
 import { creatureVisual } from './creature';
 import { el, escapeHtml, qs } from './dom';
 import { floatNumber, markActor, showStrike, type StrikeKind } from './strikeFx';
@@ -160,7 +160,8 @@ export function mountBattle(
 
     const node = el(`
       <div class="fighter${dead ? ' is-down' : ''}${isActive ? ' is-active' : ''}"
-           data-unit="${unit.id}">
+           data-unit="${unit.id}" data-rarity="${species.rarity}"
+           style="--rarity:${RARITY_COLOR[species.rarity]}">
         <div class="fighter__art">${creatureVisual(species, { context: 'card' })}</div>
         <div class="fighter__body">
           <p class="fighter__name">${escapeHtml(unit.name)} <span class="fighter__lvl">L${unit.level}</span></p>

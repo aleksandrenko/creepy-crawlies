@@ -185,7 +185,10 @@ async function loadSpecies() {
   const species = [];
   for (const f of files) {
     const text = await readFile(path.join(dir, f), 'utf8');
-    const re = /id:\s*'([^']+)',\s*\n\s*name:\s*(?:'([^']*)'|"([^"]*)"),\s*\n\s*latin:\s*'([^']+)'/g;
+    // Tolerates escaped quotes inside a name. The first version did not, so an entry
+    // written as 'Wallace\'s Giant Bee' failed to match and that species was invisible to
+    // this script — no photo, and no line in the skipped list explaining why.
+    const re = /id:\s*'([^']+)',\s*\n\s*name:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"),\s*\n\s*latin:\s*'([^']+)'/g;
     for (const m of text.matchAll(re)) {
       species.push({ id: m[1], name: (m[2] ?? m[3] ?? '').replace(/\\'/g, "'"), latin: m[4] });
     }

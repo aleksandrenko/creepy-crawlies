@@ -355,7 +355,7 @@ export const STRIKERS_3: Species[] = [
   },
   {
     id: 'megachile',
-    name: 'Wallace\'s Giant Bee',
+    name: "Wallace's Giant Bee",
     latin: 'Megachile pluto',
     rarity: 'legendary',
     role: 'striker',

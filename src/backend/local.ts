@@ -107,8 +107,12 @@ export function rollEggSpecies(weights: Record<Rarity, number> = DEFAULT_WEIGHTS
   return from[Math.floor(Math.random() * from.length)]!.id;
 }
 
-export function makeEgg(speciesId: string, source: EggSource): Egg {
-  return { id: id('egg'), speciesId, acquiredAt: Date.now(), source };
+/**
+ * A new egg does not know what is in it. The species is rolled when it is cracked, so
+ * there is nothing to spoil and nothing stored to peek at.
+ */
+export function makeEgg(source: EggSource): Egg {
+  return { id: id('egg'), speciesId: null, acquiredAt: Date.now(), source };
 }
 
 function makeInsect(speciesId: string): OwnedInsect {
@@ -181,7 +185,7 @@ function migrate(raw: Partial<StoredState> & { hatchery?: unknown[] }): {
   // A species removed from the roster would otherwise throw on every render.
   const known = new Set(SPECIES.map((s) => s.id));
   const cleanNest = nest.filter((i) => known.has(i.speciesId));
-  const cleanEggs = eggs.filter((e) => known.has(e.speciesId));
+  const cleanEggs = eggs.filter((e) => e.speciesId === null || known.has(e.speciesId));
   const cleanDiscovered = discovered.filter((id) => known.has(id));
   if (cleanNest.length !== nest.length || cleanEggs.length !== eggs.length) changed = true;
 
@@ -361,12 +365,14 @@ export class LocalBackend implements Backend {
     const egg = state.eggs.find((e) => e.id === eggId);
     if (!egg) throw new BackendError('That egg is gone.');
 
-    const insect = makeInsect(egg.speciesId);
-    const firstTime = !state.discovered.includes(egg.speciesId);
+    // This is the moment it is decided. Eggs saved before the change already know.
+    const speciesId = egg.speciesId ?? rollEggSpecies();
+    const insect = makeInsect(speciesId);
+    const firstTime = !state.discovered.includes(speciesId);
 
     state.eggs = state.eggs.filter((e) => e.id !== eggId);
     state.nest.push(insect);
-    if (firstTime) state.discovered.push(egg.speciesId);
+    if (firstTime) state.discovered.push(speciesId);
 
     state.profile = grantXp(state.profile, firstTime ? 60 : 25);
     this.save(user.id, state);
@@ -385,10 +391,10 @@ export class LocalBackend implements Backend {
     // An egg is a chance, not a wage — and a loss is still worth playing out.
     const eggs: Egg[] = [];
     if (Math.random() < (result.won ? EGG_CHANCE_WIN : EGG_CHANCE_LOSS)) {
-      eggs.push(makeEgg(rollEggSpecies(), 'battle'));
+      eggs.push(makeEgg('battle'));
       // The second egg is rolled only when the first landed, so a win can pay twice.
       if (result.won && Math.random() < EGG_CHANCE_WIN_SECOND) {
-        eggs.push(makeEgg(rollEggSpecies(), 'battle'));
+        eggs.push(makeEgg('battle'));
       }
     }
     state.eggs.push(...eggs);

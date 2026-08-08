@@ -1447,8 +1447,8 @@ button {
   flex-direction: column;
   align-items: center;
   gap: 0.3rem;
-  width: 15.5rem;
-  padding: 0.7rem 0.7rem 0.8rem;
+  width: 20rem;
+  padding: 0.75rem 0.8rem 0.85rem;
   /* Rarity is the border, not a stripe: it should be readable from across the screen. */
   border: 3px solid var(--rarity, var(--edge));
   border-radius: var(--radius);
@@ -1494,7 +1494,7 @@ button {
 }
 
 .fighter__art {
-  width: 156px;
+  width: 203px;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -1512,7 +1512,7 @@ button {
 
 .fighter__name {
   margin: 0;
-  font-size: 1.02rem;
+  font-size: 1.14rem;
   font-weight: 600;
   text-align: center;
   line-height: 1.2;
@@ -1876,11 +1876,11 @@ button {
   }
 
   .fighter {
-    width: 9.4rem;
+    width: 10.2rem;
   }
 
   .fighter__art {
-    width: 88px;
+    width: 112px;
   }
 
   .skills-bar {
@@ -2317,4 +2317,38 @@ button {
     grid-template-columns: 1fr 1fr;
     width: auto;
   }
+}
+
+
+/* ── the unknown egg ─────────────────────────────────────── */
+
+/* No rarity colour, because there is no rarity to show yet. */
+.egg-card--mystery {
+  border-top-color: var(--edge-strong);
+}
+
+.egg-card--mystery .egg-card__egg {
+  display: grid;
+  place-items: center;
+  /* Shifts hue slowly, so it reads as "could be anything" rather than as one rarity. */
+  animation: egg-breathe 3.4s ease-in-out infinite, mystery-hue 9s linear infinite;
+  box-shadow: 0 0 34px rgba(200, 180, 255, 0.4), inset 0 -10px 18px rgba(90, 70, 130, 0.4);
+}
+
+@keyframes mystery-hue {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(50deg); }
+}
+
+.egg-card__mark {
+  font-family: var(--font);
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: rgba(40, 30, 20, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.egg-card--mystery .egg-card__name {
+  color: var(--ink-dim);
+  font-style: italic;
 }

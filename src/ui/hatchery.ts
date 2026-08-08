@@ -1,8 +1,9 @@
 /**
  * The Hatchery: the eggs you are holding, and a button to crack each one.
  *
- * No timers and no waiting — an egg is already for a known species, and hatching is
- * immediate. The random part of the loop is which egg a battle drops, not the wait.
+ * No timers and no waiting. What is inside is unknown until you crack it — the species is
+ * rolled at that moment, so the card genuinely has nothing to show, and cracking it is the
+ * payoff the loop is built around.
  */
 
 import { backend, BackendError, EGG_SOURCE_LABEL, type Egg, type GameState } from '../backend';
@@ -31,7 +32,7 @@ export function openHatchery(state: GameState, refresh: () => Promise<void>): vo
           <div class="empty-state">
             <div class="empty-state__hollow" aria-hidden="true"></div>
             <p class="empty-state__title">No eggs in the hollows</p>
-            <p class="empty-state__text">Eggs drop from battles. Which species you get is the luck of it.</p>
+            <p class="empty-state__text">Eggs drop from battles. What is inside is not decided until you crack one.</p>
           </div>
         `),
       );
@@ -44,23 +45,27 @@ export function openHatchery(state: GameState, refresh: () => Promise<void>): vo
   }
 
   function card(egg: Egg): HTMLElement {
-    const species = getSpecies(egg.speciesId);
-    const known = state.discovered.includes(species.id);
+    // Legacy eggs from before the change still name their occupant; new ones do not.
+    const species = egg.speciesId ? getSpecies(egg.speciesId) : null;
 
     const node = el(`
-      <div class="egg-card" style="--rarity:${RARITY_COLOR[species.rarity]}">
+      <div class="egg-card${species ? '' : ' egg-card--mystery'}"
+           ${species ? `style="--rarity:${RARITY_COLOR[species.rarity]}"` : ''}>
         <div class="egg-card__egg" aria-hidden="true">
           <span class="egg-card__shine"></span>
-          <span class="egg-card__inside">${creatureVisual(species, { context: 'egg' })}</span>
+          ${species
+            ? `<span class="egg-card__inside">${creatureVisual(species, { context: 'egg' })}</span>`
+            : '<span class="egg-card__mark">?</span>'}
         </div>
-        <p class="egg-card__name">${escapeHtml(species.name)}</p>
-        <p class="egg-card__tags">
-          <span class="tag tag--rarity">${escapeHtml(species.rarity)}</span>
-          <span class="tag">${escapeHtml(ROLE_LABEL[species.role])}</span>
-        </p>
+        <p class="egg-card__name">${species ? escapeHtml(species.name) : 'Unknown egg'}</p>
+        ${species
+          ? `<p class="egg-card__tags">
+               <span class="tag tag--rarity">${escapeHtml(species.rarity)}</span>
+               <span class="tag">${escapeHtml(ROLE_LABEL[species.role])}</span>
+             </p>`
+          : '<p class="egg-card__tags"><span class="tag">Species unknown</span></p>'}
         <p class="egg-card__source">${escapeHtml(EGG_SOURCE_LABEL[egg.source])}</p>
-        ${known ? '' : '<p class="egg-card__new">New to your Codex</p>'}
-        <button class="btn btn--primary egg-card__hatch" type="button">Hatch</button>
+        <button class="btn btn--primary egg-card__hatch" type="button">Crack it open</button>
       </div>
     `);
 
@@ -85,7 +90,7 @@ export function openHatchery(state: GameState, refresh: () => Promise<void>): vo
 function subtitleFor(state: GameState): string {
   const n = state.eggs.length;
   if (n === 0) return 'Nothing waiting to hatch';
-  return `${n} ${n === 1 ? 'egg' : 'eggs'} ready — hatch whenever you like`;
+  return `${n} ${n === 1 ? 'egg' : 'eggs'} — nobody knows what is in them yet`;
 }
 
 /** The payoff moment: what came out of the egg. */

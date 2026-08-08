@@ -29,14 +29,20 @@ export interface OwnedInsect {
 }
 
 /**
- * An egg you already hold. It is for one known species — you can see what is inside
- * before you crack it — and it hatches the moment you ask. No timers.
+ * An egg you already hold. It hatches the moment you ask — no timers.
  *
- * Eggs are a battle reward: which species drops is the random part, not the wait.
+ * What is inside is genuinely undecided until you crack it: the species is rolled at
+ * hatch time, not at drop time. Storing the answer up front and merely hiding it in the
+ * UI would leave it sitting in localStorage for anyone curious enough to look, and the
+ * whole point is the suspense.
+ *
+ * `speciesId` is therefore null on every egg the game creates now. It stays on the type
+ * for eggs saved before the change, which already know what they contain.
  */
 export interface Egg {
   id: string;
-  speciesId: string;
+  /** Legacy only: eggs dropped before hatching became a surprise. Null means unknown. */
+  speciesId: string | null;
   acquiredAt: number;
   /** Where it came from, so the Hatchery can say so. */
   source: EggSource;

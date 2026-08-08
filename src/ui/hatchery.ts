@@ -11,6 +11,7 @@ import { BIOME_LABEL, getSpecies, RARITY_COLOR, ROLE_LABEL } from '../content/sp
 import { el, escapeHtml, qs } from './dom';
 import { openPanel, toast } from './panel';
 import { creatureVisual } from './creature';
+import { playHatch } from './hatchAnimation';
 
 export function openHatchery(state: GameState, refresh: () => Promise<void>): void {
   const panel = openPanel({
@@ -74,6 +75,9 @@ export function openHatchery(state: GameState, refresh: () => Promise<void>): vo
         const result = await backend.hatch(egg.id);
         await refresh();
         render();
+        // The insect is already banked at this point; the animation only paces the reveal,
+        // so a player never loses a hatch to a graphical hiccup.
+        await playHatch(getSpecies(result.insect.speciesId).rarity);
         showHatchReveal(result.insect.speciesId, result.firstTime);
       } catch (err) {
         toast(err instanceof BackendError ? err.message : 'Could not hatch that egg.', 'error');

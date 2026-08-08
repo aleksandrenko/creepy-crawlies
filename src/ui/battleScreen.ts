@@ -24,6 +24,7 @@ import { compiled, DEBUFFS, type StatusKind } from '../battle/mechanics';
 import { getSpecies, RARITY_COLOR } from '../content/species';
 import { creatureVisual } from './creature';
 import { el, escapeHtml, qs } from './dom';
+import { ICON_FAMILY, ICON_LABEL, iconFor, iconSvg } from './skillIcon';
 import { announceStrike, floatNumber, markActor, showStrike, type StrikeKind } from './strikeFx';
 
 export interface BattleController {
@@ -54,6 +55,10 @@ export function mountBattle(
   controller: BattleController,
   onExit: (result: { won: boolean | null; reason: string }) => void,
 ): void {
+  // Two stacked arenas would leave the player looking at one battle while clicking on
+  // another. Whatever route got us here, only one may ever be on screen.
+  for (const stale of document.querySelectorAll('.arena')) stale.remove();
+
   const root = el(`
     <div class="arena">
       <header class="arena__top">
@@ -242,12 +247,32 @@ export function mountBattle(
       const ready = skillReady(actor, index);
       const cd = actor.cooldowns[index];
 
+      const kind = iconFor(skill.mechanic);
+      // The third skill is the unit's big one, and reads as such at a glance.
+      const ultimate = index === 2;
+
       const button = el(`
-        <button class="skill-btn${ready ? '' : ' is-cooling'}${pendingSkill === index ? ' is-armed' : ''}"
-                type="button" ${ready ? '' : 'disabled'}>
-          <span class="skill-btn__name">${escapeHtml(skill.name)}</span>
-          <span class="skill-btn__text">${escapeHtml(skill.text)}</span>
-          <span class="skill-btn__cd">${ready ? (skill.cooldown === 0 ? 'ready' : `CD ${skill.cooldown}`) : `${cd} turn${cd === 1 ? '' : 's'}`}</span>
+        <button class="skill-orb${ready ? '' : ' is-cooling'}${pendingSkill === index ? ' is-armed' : ''}${ultimate ? ' skill-orb--ultimate' : ''}"
+                type="button" ${ready ? '' : 'disabled'}
+                data-family="${ICON_FAMILY[kind]}"
+                aria-label="${escapeHtml(`${skill.name}. ${skill.text}`)}">
+          <span class="skill-orb__ring" aria-hidden="true"></span>
+          ${iconSvg(kind)}
+          ${ready ? '' : `<span class="skill-orb__cd">${cd}</span>`}
+          <span class="skill-orb__tip" role="tooltip">
+            <span class="skill-orb__tip-head">
+              <span class="skill-orb__tip-name">${escapeHtml(skill.name)}</span>
+              <span class="skill-orb__tip-kind">${escapeHtml(ICON_LABEL[kind])}</span>
+            </span>
+            <span class="skill-orb__tip-text">${escapeHtml(skill.text)}</span>
+            <span class="skill-orb__tip-cd">${
+              ready
+                ? skill.cooldown === 0
+                  ? 'Usable every turn'
+                  : `${skill.cooldown}-turn cooldown`
+                : `Ready in ${cd} turn${cd === 1 ? '' : 's'}`
+            }</span>
+          </span>
         </button>
       `);
 

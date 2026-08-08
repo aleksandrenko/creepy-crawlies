@@ -1610,55 +1610,11 @@ button {
 }
 
 .skills-bar {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
   min-height: 4.6rem;
-}
-
-.skill-btn {
-  display: grid;
-  gap: 0.15rem;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid var(--edge-strong);
-  border-radius: 11px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.3));
-  text-align: left;
-  transition: border-color 140ms ease, transform 140ms ease, background 140ms ease;
-}
-
-.skill-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  border-color: rgba(232, 161, 58, 0.6);
-}
-
-.skill-btn.is-armed {
-  border-color: var(--amber);
-  background: rgba(232, 161, 58, 0.14);
-}
-
-.skill-btn.is-cooling {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.skill-btn__name {
-  font-family: var(--font);
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-.skill-btn__text {
-  font-size: 0.7rem;
-  line-height: 1.35;
-  color: var(--ink-dim);
-}
-
-.skill-btn__cd {
-  font-size: 0.64rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--amber);
 }
 
 .combat-log {
@@ -2351,4 +2307,414 @@ button {
 .egg-card--mystery .egg-card__name {
   color: var(--ink-dim);
   font-style: italic;
+}
+
+
+/* ── skill orbs ──────────────────────────────────────────── */
+
+/*
+ * Round, icon-first buttons in the genre's idiom. The glyph says what the skill does
+ * (see skillIcon.ts) and the ring colour says which family it belongs to, so a kit is
+ * readable before any tooltip is opened.
+ */
+.skill-orb {
+  --orb: 74px;
+  --tone: #d8cfc0;
+
+  position: relative;
+  width: var(--orb);
+  height: var(--orb);
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.16), transparent 55%),
+    radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--tone) 40%, transparent), transparent 70%),
+    linear-gradient(180deg, #2a2620, #14120f);
+  color: var(--tone);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--tone) 75%, transparent),
+    0 0 18px -4px color-mix(in srgb, var(--tone) 70%, transparent),
+    inset 0 -6px 14px rgba(0, 0, 0, 0.6);
+  transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+}
+
+.skill-orb[data-family='damage'] { --tone: #ff7a5c; }
+.skill-orb[data-family='heal'] { --tone: #7fdc94; }
+.skill-orb[data-family='buff'] { --tone: #ffd257; }
+.skill-orb[data-family='debuff'] { --tone: #c88cf0; }
+
+/* The unit's big skill, bigger. */
+.skill-orb--ultimate {
+  --orb: 92px;
+}
+
+.skill-orb__ring {
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1px dashed color-mix(in srgb, var(--tone) 45%, transparent);
+  opacity: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.skill-icon {
+  width: 52%;
+  height: 52%;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tone) 65%, transparent));
+}
+
+.skill-orb--ultimate .skill-icon {
+  width: 50%;
+  height: 50%;
+}
+
+.skill-orb:hover:not(:disabled),
+.skill-orb:focus-visible {
+  transform: translateY(-4px) scale(1.06);
+  box-shadow:
+    0 0 0 3px var(--tone),
+    0 0 30px -2px color-mix(in srgb, var(--tone) 85%, transparent),
+    inset 0 -6px 14px rgba(0, 0, 0, 0.5);
+  outline: none;
+}
+
+.skill-orb:hover:not(:disabled) .skill-orb__ring,
+.skill-orb:focus-visible .skill-orb__ring {
+  opacity: 1;
+  transform: rotate(35deg);
+}
+
+/* Armed and waiting for a target. */
+.skill-orb.is-armed {
+  animation: orb-armed 1.3s ease-in-out infinite;
+}
+
+@keyframes orb-armed {
+  0%, 100% { box-shadow: 0 0 0 3px var(--tone), 0 0 24px -2px color-mix(in srgb, var(--tone) 70%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--tone) 40%, transparent), 0 0 36px 0 var(--tone); }
+}
+
+/* Cooling down: dimmed, desaturated, with the turns left over the top. */
+.skill-orb.is-cooling {
+  cursor: not-allowed;
+  filter: grayscale(0.85) brightness(0.6);
+}
+
+.skill-orb__cd {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(4, 6, 8, 0.66);
+  font-family: var(--font);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+/* ── skill tooltip ───────────────────────────────────────── */
+
+.skill-orb__tip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  width: 17rem;
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--tone) 50%, transparent);
+  border-radius: 12px;
+  background: rgba(14, 16, 14, 0.97);
+  box-shadow: var(--shadow-lift);
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease;
+  z-index: 20;
+}
+
+/* A little arrow pointing at the orb it describes. */
+.skill-orb__tip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(14, 16, 14, 0.97);
+}
+
+.skill-orb:hover .skill-orb__tip,
+.skill-orb:focus-visible .skill-orb__tip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* A disabled button gets no :hover in some engines, so cooling orbs opt in explicitly. */
+.skill-orb.is-cooling:hover .skill-orb__tip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  filter: grayscale(0) brightness(1);
+}
+
+.skill-orb__tip-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.skill-orb__tip-name {
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.skill-orb__tip-kind {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--tone);
+  white-space: nowrap;
+}
+
+.skill-orb__tip-text {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+
+.skill-orb__tip-cd {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--tone);
+}
+
+@media (max-width: 760px) {
+  .skill-orb { --orb: 62px; }
+  .skill-orb--ultimate { --orb: 74px; }
+  .skills-bar { gap: 0.8rem; }
+  .skill-orb__tip { width: 14rem; }
+}
+
+/* ── hatching ────────────────────────────────────────────── */
+
+.hatch {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 46%, rgba(10, 12, 10, 0.82), rgba(4, 6, 5, 0.96));
+  color: var(--rarity);
+  transition: opacity 320ms ease;
+}
+
+.hatch.is-leaving {
+  opacity: 0;
+}
+
+.hatch.is-reduced .hatch__egg,
+.hatch.is-reduced .hatch__caption {
+  opacity: 0.9;
+}
+
+/* The light behind the egg, which swells as the shell fails. */
+.hatch__glow {
+  position: absolute;
+  width: 26vmin;
+  height: 26vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--rarity), transparent 68%);
+  opacity: 0.16;
+  filter: blur(22px);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+
+.hatch.is-cracking .hatch__glow { opacity: 0.4; transform: scale(1.25); }
+.hatch.is-charging .hatch__glow { opacity: 0.75; transform: scale(1.9); }
+.hatch.is-bursting .hatch__glow { opacity: 0; transform: scale(4.5); transition-duration: 620ms; }
+
+/* ── the egg ─────────────────────────────────────────────── */
+
+.hatch__egg {
+  position: relative;
+  width: 132px;
+  height: 176px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: linear-gradient(165deg, #f5ecd6, #c2a276);
+  box-shadow: 0 0 40px -6px var(--rarity), inset 0 -16px 28px rgba(120, 80, 30, 0.45);
+  color: rgba(60, 40, 20, 0.85);
+}
+
+.hatch__shine {
+  position: absolute;
+  top: 15%;
+  left: 22%;
+  width: 26px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.65);
+  filter: blur(5px);
+}
+
+.hatch.is-wobbling .hatch__egg {
+  animation: hatch-wobble 620ms cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+}
+
+.hatch.is-cracking .hatch__egg {
+  animation: hatch-wobble 300ms cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+}
+
+.hatch.is-charging .hatch__egg {
+  animation: hatch-wobble 150ms linear infinite;
+  box-shadow: 0 0 90px 6px var(--rarity), inset 0 -16px 28px rgba(120, 80, 30, 0.35);
+}
+
+.hatch.is-bursting .hatch__egg {
+  animation: hatch-blow 380ms ease-out forwards;
+}
+
+@keyframes hatch-wobble {
+  0%, 100% { transform: rotate(0) translateX(0); }
+  25% { transform: rotate(calc(-3deg * var(--intensity, 1))) translateX(calc(-4px * var(--intensity, 1))); }
+  75% { transform: rotate(calc(3deg * var(--intensity, 1))) translateX(calc(4px * var(--intensity, 1))); }
+}
+
+@keyframes hatch-blow {
+  0% { transform: scale(1); opacity: 1; }
+  35% { transform: scale(1.3); opacity: 1; filter: brightness(2.6); }
+  100% { transform: scale(0.2); opacity: 0; filter: brightness(4); }
+}
+
+/* Cracks are drawn on, then lit from inside. */
+.hatch__cracks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  transition: opacity 200ms ease, stroke-dashoffset 700ms ease;
+}
+
+.hatch.is-cracking .hatch__cracks { opacity: 1; stroke-dashoffset: 0; }
+
+.hatch.is-charging .hatch__cracks {
+  stroke: #fff;
+  filter: drop-shadow(0 0 8px var(--rarity)) drop-shadow(0 0 16px #fff);
+}
+
+/* ── rays and sparks ─────────────────────────────────────── */
+
+.hatch__rays,
+.hatch__sparks {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.hatch__ray {
+  position: absolute;
+  width: 3px;
+  height: 46vmin;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--angle)) scaleY(0);
+  background: linear-gradient(to top, var(--rarity), transparent);
+  opacity: 0;
+  filter: blur(1px);
+}
+
+.hatch.is-bursting .hatch__ray {
+  animation: ray-out 620ms cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes ray-out {
+  0% { transform: rotate(var(--angle)) scaleY(0); opacity: 0; }
+  25% { opacity: 0.85; }
+  100% { transform: rotate(var(--angle)) scaleY(1); opacity: 0; }
+}
+
+.hatch__spark {
+  position: absolute;
+  width: var(--size, 5px);
+  height: var(--size, 5px);
+  border-radius: 50%;
+  background: var(--rarity);
+  box-shadow: 0 0 10px var(--rarity);
+  opacity: 0;
+}
+
+.hatch__spark.is-hot {
+  background: #fff;
+  box-shadow: 0 0 12px #fff, 0 0 22px var(--rarity);
+}
+
+.hatch.is-bursting .hatch__spark {
+  animation: spark-fly 760ms cubic-bezier(0.15, 0.85, 0.25, 1) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes spark-fly {
+  0% { opacity: 1; transform: rotate(var(--angle)) translateY(0) rotate(0); }
+  70% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(calc(-1 * var(--distance, 160px))) rotate(var(--spin, 0deg));
+  }
+}
+
+.hatch__caption {
+  position: absolute;
+  bottom: 24%;
+  margin: 0;
+  font-family: var(--font);
+  font-size: 1.1rem;
+  color: var(--ink-dim);
+  letter-spacing: 0.02em;
+  transition: opacity 260ms ease;
+}
+
+/* Rays behind the revealed creature, so the reveal panel inherits the moment. */
+.reveal__art {
+  position: relative;
+}
+
+.reveal__art::before {
+  content: '';
+  position: absolute;
+  inset: -28%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--rarity) 55%, transparent) 0deg 8deg,
+    transparent 8deg 30deg
+  );
+  animation: reveal-spin 22s linear infinite;
+  opacity: 0.5;
+  z-index: -1;
+}
+
+@keyframes reveal-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hatch__egg, .hatch__spark, .hatch__ray, .hatch__cracks, .reveal__art::before {
+    animation: none !important;
+    transition: none !important;
+  }
 }

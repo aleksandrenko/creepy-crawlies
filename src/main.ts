@@ -8,6 +8,8 @@ import { openCodex } from './ui/codex';
 import { el, escapeHtml, qs } from './ui/dom';
 import { openHatchery } from './ui/hatchery';
 import { Hud } from './ui/hud';
+import { installCreatureHydration, refreshCreatures } from './ui/creature';
+import { initDisplayMode, onDisplayModeChange } from './ui/displayMode';
 import { openNest } from './ui/nest';
 
 const app = qs(document, '#app');
@@ -112,6 +114,11 @@ class Game {
  * unwired, ready to come back once there is a server to keep accounts on.
  */
 async function main(): Promise<void> {
+  initDisplayMode();
+  installCreatureHydration();
+  // Flipping the view redraws whatever is already on screen, panels included.
+  onDisplayModeChange(() => refreshCreatures());
+
   try {
     await backend.ensureLocalPlayer();
   } catch (err) {

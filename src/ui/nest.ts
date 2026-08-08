@@ -77,7 +77,7 @@ export function openNest(state: GameState, refresh: () => Promise<void>): void {
     const species = getSpecies(insect.speciesId);
     const node = el(`
       <button class="crawly" type="button" style="--rarity:${RARITY_COLOR[species.rarity]}">
-        <span class="crawly__art">${creatureVisual(species, { context: 'detail' })}</span>
+        <span class="crawly__art">${creatureVisual(species, { context: 'grid' })}</span>
         <span class="crawly__level">${insect.level}</span>
         <span class="crawly__name">${escapeHtml(insect.nickname ?? species.name)}</span>
         <span class="crawly__role">${escapeHtml(ROLE_LABEL[species.role])}</span>

@@ -22,7 +22,7 @@ import {
 } from '../battle/engine';
 import { compiled, DEBUFFS, type StatusKind } from '../battle/mechanics';
 import { getSpecies, RARITY_COLOR } from '../content/species';
-import { creatureVisual } from './creature';
+import { creatureVisual, creatureView } from './creature';
 import { el, escapeHtml, qs } from './dom';
 import { ICON_FAMILY, ICON_LABEL, iconFor, iconSvg } from './skillIcon';
 import { announceStrike, floatNumber, markActor, showStrike, type StrikeKind } from './strikeFx';
@@ -163,6 +163,17 @@ export function mountBattle(
         );
       }
 
+      // In model mode the attacker performs the matching pose, chosen by the same
+      // classification the skill icon uses.
+      if (actor) {
+        const skillIndex = compiled(actor.speciesId).skills.findIndex(
+          (sk) => entry.text.includes(sk.name),
+        );
+        if (skillIndex >= 0) {
+          creatureView(actor.id)?.play(iconFor(compiled(actor.speciesId).skills[skillIndex]!.mechanic));
+        }
+      }
+
       entry.fx.forEach((fx, n) => {
         setTimeout(() => {
           const kind = kindOf(fx.kind);
@@ -195,7 +206,7 @@ export function mountBattle(
       <div class="fighter${dead ? ' is-down' : ''}${isActive ? ' is-active' : ''}"
            data-unit="${unit.id}" data-rarity="${species.rarity}"
            style="--rarity:${RARITY_COLOR[species.rarity]}">
-        <div class="fighter__art">${creatureVisual(species, { context: 'card' })}</div>
+        <div class="fighter__art">${creatureVisual(species, { context: 'battle', key: unit.id })}</div>
         <div class="fighter__body">
           <p class="fighter__name">${escapeHtml(unit.name)} <span class="fighter__lvl">L${unit.level}</span></p>
           <div class="fighter__hp"><span class="fighter__hp-fill" style="width:${pct}%"></span></div>

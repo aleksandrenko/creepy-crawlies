@@ -88,7 +88,7 @@ export function openCodex(state: GameState): void {
     const node = el(`
       <button class="codex-entry${known ? '' : ' is-locked'}" type="button"
               style="--rarity:${RARITY_COLOR[species.rarity]}">
-        <span class="codex-entry__art">${creatureVisual(species, { silhouette: !known, context: 'card' })}</span>
+        <span class="codex-entry__art">${creatureVisual(species, { silhouette: !known, context: 'grid' })}</span>
         <span class="codex-entry__name">${known ? escapeHtml(species.name) : 'Undiscovered'}</span>
         <span class="codex-entry__sub">${known ? escapeHtml(ROLE_LABEL[species.role]) : escapeHtml(BIOME_LABEL[species.biome])}</span>
         <span class="codex-entry__rarity">${escapeHtml(species.rarity)}</span>

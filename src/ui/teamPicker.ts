@@ -47,7 +47,7 @@ export function pickTeam(
       const node = el(`
         <button class="picker__slot" type="button" style="--rarity:${RARITY_COLOR[species.rarity]}"
                 title="Remove ${escapeHtml(insect.nickname ?? species.name)}">
-          <span class="picker__slot-art">${creatureVisual(species, { context: 'card' })}</span>
+          <span class="picker__slot-art">${creatureVisual(species, { context: 'grid' })}</span>
           <span class="picker__slot-name">${escapeHtml(insect.nickname ?? species.name)}</span>
         </button>
       `);
@@ -81,7 +81,7 @@ export function pickTeam(
     const node = el(`
       <button class="crawly${picked ? ' is-picked' : ''}" type="button"
               style="--rarity:${RARITY_COLOR[species.rarity]}">
-        <span class="crawly__art">${creatureVisual(species, { context: 'card' })}</span>
+        <span class="crawly__art">${creatureVisual(species, { context: 'grid' })}</span>
         <span class="crawly__level">${insect.level}</span>
         <span class="crawly__name">${escapeHtml(insect.nickname ?? species.name)}</span>
         <span class="crawly__role">${escapeHtml(ROLE_LABEL[species.role])}</span>

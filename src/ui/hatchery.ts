@@ -55,7 +55,7 @@ export function openHatchery(state: GameState, refresh: () => Promise<void>): vo
         <div class="egg-card__egg" aria-hidden="true">
           <span class="egg-card__shine"></span>
           ${species
-            ? `<span class="egg-card__inside">${creatureVisual(species, { context: 'egg' })}</span>`
+            ? `<span class="egg-card__inside">${creatureVisual(species, { context: 'reveal' })}</span>`
             : '<span class="egg-card__mark">?</span>'}
         </div>
         <p class="egg-card__name">${species ? escapeHtml(species.name) : 'Unknown egg'}</p>
@@ -107,7 +107,7 @@ function showHatchReveal(speciesId: string, firstTime: boolean): void {
   reveal.body.appendChild(
     el(`
       <div class="reveal" style="--rarity:${RARITY_COLOR[species.rarity]}">
-        <div class="reveal__art">${creatureVisual(species, { context: 'egg' })}</div>
+        <div class="reveal__art">${creatureVisual(species, { context: 'reveal' })}</div>
         <h3 class="reveal__name">${escapeHtml(species.name)}</h3>
         <p class="reveal__tags">
           <span class="tag tag--rarity">${escapeHtml(species.rarity)}</span>

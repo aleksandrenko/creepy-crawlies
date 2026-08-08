@@ -4,7 +4,9 @@
  */
 
 import { xpForLevel, type GameState } from '../backend';
+import { displayMode, toggleDisplayMode } from './displayMode';
 import { el, escapeHtml, qs } from './dom';
+import { is3dSupported } from './insect3d';
 
 export interface HudCallbacks {
   onBattle(): void;
@@ -29,10 +31,31 @@ export class Hud {
           </span>
         </button>
 
-        <div class="purse">
-          <span class="purse__icon" aria-hidden="true"></span>
-          <span class="purse__amount">0</span>
-          <span class="purse__label">motes</span>
+        <div class="top-right">
+          <button class="view-toggle" type="button" aria-pressed="false"
+                  title="Switch between photographs and 3D models">
+            <span class="view-toggle__icons" aria-hidden="true">
+              <svg class="view-toggle__photo" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="2.5"/>
+                <circle cx="12" cy="12" r="3.4"/>
+                <path d="M17 8.5h.01"/>
+              </svg>
+              <svg class="view-toggle__model" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2.6 21 7.3v9.4L12 21.4 3 16.7V7.3Z"/>
+                <path d="M3 7.3 12 12l9-4.7"/>
+                <path d="M12 12v9.4"/>
+              </svg>
+            </span>
+            <span class="view-toggle__label"></span>
+          </button>
+
+          <div class="purse">
+            <span class="purse__icon" aria-hidden="true"></span>
+            <span class="purse__amount">0</span>
+            <span class="purse__label">motes</span>
+          </div>
         </div>
 
         <div class="actions">
@@ -55,6 +78,27 @@ export class Hud {
         </div>
       </div>
     `);
+
+    const view = qs<HTMLButtonElement>(this.root, '.view-toggle');
+    const paintToggle = () => {
+      const model = displayMode() === 'model';
+      view.classList.toggle('is-model', model);
+      view.setAttribute('aria-pressed', String(model));
+      qs(this.root, '.view-toggle__label').textContent = model ? '3D' : 'Photo';
+    };
+
+    if (is3dSupported()) {
+      view.addEventListener('click', () => {
+        toggleDisplayMode();
+        paintToggle();
+      });
+      paintToggle();
+    } else {
+      // No WebGL: say so rather than offering a switch that cannot work.
+      view.disabled = true;
+      view.title = 'This browser cannot show 3D models';
+      qs(this.root, '.view-toggle__label').textContent = 'Photo';
+    }
 
     qs(this.root, '.profile').addEventListener('click', cb.onProfile);
     qs(this.root, '.action--battle').addEventListener('click', cb.onBattle);

@@ -12,6 +12,7 @@ import { installCreatureHydration, refreshCreatures } from './ui/creature';
 import { onRigStyleChange } from './scene/rigStyle';
 import { initDisplayMode, onDisplayModeChange } from './ui/displayMode';
 import { openNest } from './ui/nest';
+import { openStylePicker } from './ui/stylePicker';
 
 const app = qs(document, '#app');
 
@@ -133,7 +134,12 @@ async function main(): Promise<void> {
     await Game.start();
   } catch (err) {
     showFatal('The colony loaded but the clearing failed to build.', err);
+    return;
   }
+
+  // `#styles` opens the comparison straight away, so it can be linked to instead of
+  // described as a path through two menus.
+  if (location.hash === '#styles') openStylePicker();
 }
 
 void main();

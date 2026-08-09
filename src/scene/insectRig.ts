@@ -279,10 +279,35 @@ function buildLeg(
   const thick = 0.016 * scale;
 
   const hip = new THREE.Group();
-  // Front pair reaches forward, middle out, hind pair back.
-  hip.rotation.x = [-0.5, 0.1, 0.52][pair]!;
-  // Almost flat to the side: this is what lifts the knee above the body.
-  hip.rotation.z = side * -1.4;
+  /*
+   * Front pair reaches forward, middle out, hind pair back — and how far apart those three
+   * angles are depends on how elongated the animal is.
+   *
+   * A compact beetle keeps its legs close to perpendicular, because there is barely any body
+   * to spread them along. A stick insect does the opposite: the front pair stretches almost
+   * straight forward alongside the antennae and the hind pair almost straight back, which is
+   * the posture that makes it read as a twig. With one fixed splay for everything, six legs
+   * that long all left the thorax at nearly the same angle and crossed over each other — a
+   * star of sticks rather than an animal.
+   */
+  const slenderness = body.legs / Math.max(0.2, body.girth);
+  const twiggy = Math.min(1, Math.max(0, (slenderness - 1.2) / 2.4));
+  /*
+   * The splay is a yaw, not a pitch. Pitching the hip was the original mistake: the leg
+   * already points out to the side, so rotating it about the fore/aft axis swings the foot
+   * up into the air rather than forward along the body. Measured on the stick insect, only
+   * the middle pair was reaching the ground at all — the other four hung above it — which is
+   * a large part of why it read as a bundle of sticks rather than an animal standing.
+   *
+   * Yawing keeps the foot at the same height and moves it where it belongs.
+   */
+  const spread = 0.5 + 0.65 * twiggy;
+  hip.rotation.y = -side * [spread, 0, -spread][pair]!;
+  // A little pitch is still worth having, for a rest pose that is not perfectly symmetrical.
+  hip.rotation.x = [-0.12, 0.04, 0.14][pair]!;
+  // Out to the side and up, which is what raises the knee above the back.
+  const HIP_OUT = 1.24;
+  hip.rotation.z = side * -HIP_OUT;
 
   const femur = new THREE.CylinderGeometry(thick, thick * 0.82, femurLen, style.radial);
   femur.translate(0, femurLen / 2, 0);
@@ -290,9 +315,18 @@ function buildLeg(
 
   const knee = new THREE.Group();
   knee.position.y = femurLen;
-  // A deeper bend than the original used. With a shallow one the tibia stayed almost
-  // horizontal and the legs radiated outward like a sea urchin instead of reaching down.
-  knee.rotation.z = side * 0.72;
+  /*
+   * From the raised knee the tibia goes down and a little further out — it plants the foot
+   * outside the shoulder, which is what gives an insect its wide sprawling stance.
+   *
+   * Written as an angle from vertical, because the previous fixed 0.72 was doing the opposite
+   * of what its comment claimed. The hip rotation it composes with is roughly 1.4, so 0.72 net
+   * a rotation that carried the tibia back *across* the body, and every foot on all 118
+   * species landed within a hair of the midline: no stance width at all, six legs converging
+   * on one point under the thorax. That is what made them read as bundles of sticks.
+   */
+  const TIBIA_OUT = 0.34;
+  knee.rotation.z = side * (HIP_OUT + TIBIA_OUT);
   hip.add(knee);
 
   put(knee, new THREE.SphereGeometry(thick * 1.6, style.radial, style.radial - 2), kneeMat, [0, 0, 0]);
@@ -302,8 +336,10 @@ function buildLeg(
   tibia.translate(0, tibiaLen / 2, 0);
   put(knee, tibia, mat, [0, 0, 0], undefined, [0, 0, Math.PI]);
 
-  // A foot at the far end, which is what makes the leg look planted.
-  put(knee, new THREE.SphereGeometry(thick * 1.1, style.radial, style.radial - 2), kneeMat, [0, -tibiaLen, 0]);
+  // A foot at the far end, which is what makes the leg look planted. Named, so the rig check
+  // can ask where the feet actually ended up rather than guessing from height.
+  const foot = put(knee, new THREE.SphereGeometry(thick * 1.1, style.radial, style.radial - 2), kneeMat, [0, -tibiaLen, 0]);
+  foot.name = 'foot';
 
   return { hip, knee };
 }
@@ -404,8 +440,14 @@ export function buildInsect(
   const materials = [carapace, underside, accent, eyeMat];
 
   const beetle = body.wings === 1;
-  // Body radius is small: everything else is sized against it, as in the original.
-  const rad = 0.055 * scale * (0.8 + body.girth * 0.32);
+  /*
+   * Body radius is small: everything else is sized against it, as in the original.
+   *
+   * It also has to grow with how long the animal is, or the long ones come out as threads —
+   * the length comes from `abdomen` while the thickness did not, so the more elongated a
+   * species was, the thinner it looked relative to itself.
+   */
+  const rad = 0.055 * scale * (0.62 + body.girth * 0.5) * (1 + body.abdomen * 0.12);
   const ride = 0.42 * scale * body.stance;
   const thoraxLen = 0.62 * scale;
 
@@ -485,18 +527,37 @@ export function buildInsect(
   } else {
     const segments = Math.max(3, Math.round(5 * body.abdomen));
     const segLen = (0.27 * scale * body.abdomen * 5) / segments;
+    /*
+     * Taper and droop describe the whole abdomen, not each joint.
+     *
+     * Held per-segment they scaled with the segment count, which is driven by length: a short
+     * three-segment abdomen barely tapered while a stick insect's twelve segments shrank to
+     * 0.85^11 — about a sixth of where they started — so the back half of the animal
+     * disappeared to a point. The droop compounded the same way, bending a long abdomen through
+     * 0.6 radians when a short one bent through 0.15.
+     */
+    const TIP = 0.62;
+    const CURVE = -0.4;
+    const taperPerSeg = Math.pow(TIP, 1 / segments);
+    const droopPerSeg = CURVE / segments;
     let parent: THREE.Object3D = abdomen;
-    let segRad = rad * 0.94 * body.girth;
+    /*
+     * `rad` already carries the girth, so applying it again here was double-counting it. On a
+     * fat animal that was survivable; on a thin one it was not. The stick insect's abdomen came
+     * out 0.05 across on a body nearly five long — a 1:95 ratio, where the real animal is about
+     * 1:23 — so it rendered as a hairline with six legs attached and no visible body at all.
+     * A gentler second term keeps the termite queen bloated without erasing the thin ones.
+     */
+    let segRad = rad * 0.94 * (0.75 + body.girth * 0.25);
     for (let i = 0; i < segments; i++) {
       const seg = new THREE.Group();
       seg.position.z = i === 0 ? 0 : -segLen * 0.96;
-      // A constant small droop per joint, which is what gives the curve.
-      seg.rotation.x = -0.05;
-      const geo = new THREE.CylinderGeometry(segRad * 0.82, segRad, segLen, style.radial + 1);
+      seg.rotation.x = droopPerSeg;
+      const geo = new THREE.CylinderGeometry(segRad * taperPerSeg, segRad, segLen, style.radial + 1);
       put(seg, geo, i % 2 ? underside : carapace, [0, 0, -segLen / 2], undefined, [Math.PI / 2, 0, 0]);
       parent.add(seg);
       parent = seg;
-      segRad *= 0.85;
+      segRad *= taperPerSeg;
     }
   }
 

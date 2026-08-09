@@ -18,7 +18,8 @@ import { openPanel, toast } from './panel';
 /** The stick insect makes the best subject: long limbs and a segmented body show up most. */
 const PREFERRED_SUBJECT = 'morosa';
 
-const SIZE = 240;
+/** Render resolution of each preview. Larger than the slot, so the shading survives scaling. */
+const SIZE = 420;
 
 interface Preview {
   canvas: HTMLCanvasElement;
@@ -46,8 +47,14 @@ function frame(object: THREE.Object3D, target: number): THREE.Group {
   const box = new THREE.Box3().setFromObject(object);
   const size = box.getSize(new THREE.Vector3());
   const centre = box.getCenter(new THREE.Vector3());
-  // The visual bulk of an insect seen at an angle is its footprint diagonal and its height.
-  const extent = Math.max(Math.hypot(size.x, size.z) * 0.72, size.y, 0.001);
+  /*
+   * The visual bulk of an insect seen at an angle is its footprint diagonal and its height.
+   *
+   * The 0.72 is a discount on that diagonal, because the corners of a footprint are empty air:
+   * a sprawling animal is not actually as wide as the box around its feet. Too generous a
+   * discount and the abdomen tip runs off the edge, which it was doing on the stick insect.
+   */
+  const extent = Math.max(Math.hypot(size.x, size.z) * 0.86, size.y, 0.001);
   const s = target / extent;
 
   object.position.sub(centre);

@@ -2976,7 +2976,12 @@ button {
 
 .styles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  /*
+   * Wide enough that the shading is actually judgeable. At 13rem the five previews packed onto
+   * one row and the difference between a matte finish and a wet one came down to a few pixels
+   * of highlight.
+   */
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
   gap: 1rem;
 }
 

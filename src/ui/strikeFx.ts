@@ -33,8 +33,17 @@ function overlay(host: HTMLElement): SVGSVGElement {
   return svg;
 }
 
+/**
+ * The element standing for a unit.
+ *
+ * Two shapes exist: the card fallback's `.fighter`, and the 3D arena's floating name plate.
+ * Damage numbers and flashes attach to whichever is present, so neither path needs its own
+ * copy of this file.
+ */
 function fighterEl(host: HTMLElement, unitId: string): HTMLElement | null {
-  return host.querySelector<HTMLElement>(`.fighter[data-unit="${unitId}"]`);
+  return host.querySelector<HTMLElement>(
+    `.fighter[data-unit="${unitId}"], .arena3d__label[data-unit="${unitId}"]`,
+  );
 }
 
 function centreOf(host: HTMLElement, unitId: string): { x: number; y: number } | null {

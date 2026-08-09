@@ -20,7 +20,9 @@ import {
   type TeamMember,
   type Unit,
 } from '../battle/engine';
+import { BattleArena } from '../scene/battleArena';
 import { compiled, DEBUFFS, type StatusKind } from '../battle/mechanics';
+import { is3dSupported } from './insect3d';
 import { getSpecies, RARITY_COLOR } from '../content/species';
 import { creatureVisual, creatureView } from './creature';
 import { el, escapeHtml, qs } from './dom';
@@ -70,6 +72,7 @@ export function mountBattle(
         <button class="arena__resign" type="button">Resign</button>
       </header>
 
+      <div class="stage3d"></div>
       <div class="field field--them"></div>
       <div class="arena__middle">
         <div class="arena__callout" aria-live="polite"></div>
@@ -87,8 +90,25 @@ export function mountBattle(
     </div>
   `);
 
+  const stage3d = qs(root, '.stage3d');
   const them = qs(root, '.field--them');
   const mine = qs(root, '.field--me');
+
+  /*
+   * The battle is a 3D scene when WebGL allows it: insects on the ground, walking in to hit
+   * each other. The card rows stay as the fallback, and as the only path on a machine that
+   * cannot run it.
+   */
+  let arena: BattleArena | null = null;
+  if (is3dSupported()) {
+    try {
+      arena = new BattleArena(stage3d);
+      root.classList.add('is-3d');
+    } catch {
+      arena = null;
+    }
+  }
+  if (!arena) stage3d.remove();
   const bar = qs(root, '.skills-bar');
   const flaskBar = qs(root, '.flasks');
   const banner = qs(root, '.arena__banner');
@@ -105,6 +125,8 @@ export function mountBattle(
   let renderedLog = 0;
   /** Log entries already animated, so a redraw does not replay old hits. */
   let playedFx = 0;
+  /** The arena is populated once; after that only its numbers change. */
+  let placed = false;
 
   function render(): void {
     const state = controller.state();
@@ -113,8 +135,49 @@ export function mountBattle(
     roundLabel.textContent = `Round ${state.round}`;
     const actor = activeUnit(state);
 
-    renderSide(them, state, opposite(controller.mySide), state.activeUnitId);
-    renderSide(mine, state, controller.mySide, state.activeUnitId);
+    if (arena) {
+      if (!placed) {
+        placed = true;
+        arena.setUnits(
+          state.units.map((u) => ({
+            id: u.id,
+            speciesId: u.speciesId,
+            // The player's team always stands nearest the camera, whichever side they are.
+            side: u.side === controller.mySide ? 'a' : 'b',
+            slot: u.slot,
+          })),
+        );
+      }
+      arena.update(
+        state.units.map((u) => ({
+          id: u.id,
+          name: u.name,
+          hp: u.hp,
+          maxHp: u.maxHp,
+          rarity: getSpecies(u.speciesId).rarity,
+          statuses: u.statuses.map((st) => ({
+            label: STATUS_LABEL[st.kind] ?? st.kind,
+            bad: DEBUFFS.has(st.kind),
+          })),
+        })),
+      );
+      arena.setActive(state.winner ? null : state.activeUnitId);
+
+      // Highlight what the armed skill may legally hit.
+      const armedActor = pendingSkill !== null ? activeUnit(state) : null;
+      const legal = armedActor
+        ? new Set(
+            legalTargets(state, armedActor, compiled(armedActor.speciesId).skills[pendingSkill!].mechanic)
+              .map((t) => t.id),
+          )
+        : new Set<string>();
+      for (const label of arena.el.querySelectorAll<HTMLElement>('.arena3d__label')) {
+        label.classList.toggle('is-targetable', legal.has(label.dataset.unit ?? ''));
+      }
+    } else {
+      renderSide(them, state, opposite(controller.mySide), state.activeUnitId);
+      renderSide(mine, state, controller.mySide, state.activeUnitId);
+    }
 
     if (state.winner) {
       banner.textContent = '';
@@ -163,9 +226,8 @@ export function mountBattle(
         );
       }
 
-      // In model mode the attacker performs the matching pose, chosen by the same
-      // classification the skill icon uses.
-      if (actor) {
+      // Card fallback only: in the arena the pose is part of the choreography.
+      if (!arena && actor) {
         const skillIndex = compiled(actor.speciesId).skills.findIndex(
           (sk) => entry.text.includes(sk.name),
         );
@@ -174,16 +236,24 @@ export function mountBattle(
         }
       }
 
+      if (arena && actor) {
+        const skillIndex = compiled(actor.speciesId).skills.findIndex((sk) => entry.text.includes(sk.name));
+        const clip = skillIndex >= 0
+          ? iconFor(compiled(actor.speciesId).skills[skillIndex]!.mechanic)
+          : 'strike';
+        void arena.playAction(entry.actorId, entry.fx.map((f) => f.unitId), clip);
+      }
+
       entry.fx.forEach((fx, n) => {
         setTimeout(() => {
           const kind = kindOf(fx.kind);
-          if (fx.unitId !== entry.actorId) showStrike(root, entry.actorId!, fx.unitId, kind);
+          if (!arena && fx.unitId !== entry.actorId) showStrike(root, entry.actorId!, fx.unitId, kind);
           const label = fx.kind === 'miss'
             ? 'MISS'
             : fx.amount > 0
               ? `${fx.kind === 'heal' ? '+' : '-'}${fx.amount}`
               : fx.kind === 'debuff' ? 'DEBUFF' : 'BUFF';
-          floatNumber(root, fx.unitId, label, kind);
+          floatNumber(arena ? arena.el : root, fx.unitId, label, kind);
         }, n * 220);
       });
     }
@@ -356,10 +426,33 @@ export function mountBattle(
   controller.subscribe(render);
   document.body.appendChild(root);
   render();
+  if (arena) wireArenaTargeting();
+
+  /**
+   * In the arena there are no cards to click, so the floating labels are the hit targets.
+   * Rebuilt on every render would be wasteful; instead one delegated listener reads the
+   * pending skill at click time.
+   */
+  function wireArenaTargeting(): void {
+    arena!.el.addEventListener('click', (e) => {
+      const label = (e.target as HTMLElement).closest<HTMLElement>('.arena3d__label');
+      const unitId = label?.dataset.unit;
+      const state = controller.state();
+      if (!unitId || !state || pendingSkill === null) return;
+      const actor = activeUnit(state);
+      if (!actor || !controller.isMyTurn()) return;
+      const mechanic = compiled(actor.speciesId).skills[pendingSkill].mechanic;
+      if (!legalTargets(state, actor, mechanic).some((t) => t.id === unitId)) return;
+      const skill = pendingSkill;
+      pendingSkill = null;
+      controller.submit({ unitId: actor.id, skill, targetId: unitId });
+    });
+  }
 
   void controller.finished().then((result) => {
     showOutcome(root, result, () => {
       controller.dispose();
+      arena?.dispose();
       root.remove();
       onExit(result);
     });

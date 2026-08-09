@@ -15,6 +15,7 @@
 
 import * as THREE from 'three';
 import type { BodyParams, Palette } from '../content/species';
+import { rigStyle, type RigStyle, type StyleId, RIG_STYLES } from './rigStyle';
 
 /**
  * Attack poses, keyed the same way skill icons are, so every one of the 354 skills gets a
@@ -53,9 +54,13 @@ interface Parts {
   wings: THREE.Object3D[];
   arms: THREE.Group[];
   legs: { femur: THREE.Group; tibia: THREE.Group }[];
-  /** Lit up during a clip, for a flash of colour on the shell. */
-  glow: THREE.MeshStandardMaterial;
-  glowColour: THREE.Color;
+  /**
+   * Lights the shell up during a clip.
+   *
+   * A function rather than the material itself, because not every style uses a material
+   * that has an emissive channel — a toon or basic material simply has nothing to set.
+   */
+  setGlow: (intensity: number) => void;
 }
 
 /**
@@ -151,7 +156,7 @@ const CLIPS: Record<RigClip, ClipSpec> = {
       p.root.position.y += k * 0.26;
       p.torso.rotation.x = k * 0.2;
       for (const w of p.wings) w.rotation.z = k * 0.55;
-      p.glow.emissiveIntensity = k * 1.5;
+      p.setGlow(k * 1.5);
     },
   },
   revive: {
@@ -161,7 +166,7 @@ const CLIPS: Record<RigClip, ClipSpec> = {
       p.torso.rotation.x = k * 0.5;
       p.root.rotation.y += k * 0.7;
       for (const w of p.wings) w.rotation.z = k * 1.15;
-      p.glow.emissiveIntensity = k * 2.4;
+      p.setGlow(k * 2.4);
     },
   },
   drain: {
@@ -172,7 +177,7 @@ const CLIPS: Record<RigClip, ClipSpec> = {
       p.root.position.z += bite * 0.36 - Math.max(0, k - 0.45) * 0.3;
       p.head.rotation.x = bite * 0.4;
       p.abdomen.scale.setScalar(1 + k * 0.14);
-      p.glow.emissiveIntensity = k * 1.1;
+      p.setGlow(k * 1.1);
     },
   },
   shield: {
@@ -183,7 +188,7 @@ const CLIPS: Record<RigClip, ClipSpec> = {
       p.torso.rotation.x = k * 0.12;
       p.head.rotation.x = -k * 0.4;
       for (const l of p.legs) l.tibia.rotation.z *= 1 - k * 0.28;
-      p.glow.emissiveIntensity = k * 1.2;
+      p.setGlow(k * 1.2);
     },
   },
   buff: {
@@ -193,7 +198,7 @@ const CLIPS: Record<RigClip, ClipSpec> = {
       p.torso.rotation.x = k * 0.28;
       for (const a of p.arms) a.rotation.x = -k * 0.6;
       for (const w of p.wings) w.rotation.z = k * 0.7;
-      p.glow.emissiveIntensity = k * 1.8;
+      p.setGlow(k * 1.8);
     },
   },
   cleanse: {
@@ -202,7 +207,7 @@ const CLIPS: Record<RigClip, ClipSpec> = {
       // A shake, the way an animal actually sheds something.
       p.root.rotation.y += Math.sin(k * Math.PI * 5) * 0.2;
       p.root.position.y += k * 0.1;
-      p.glow.emissiveIntensity = k * 1.4;
+      p.setGlow(k * 1.4);
     },
   },
   evade: {
@@ -232,366 +237,333 @@ function hashId(text: string): number {
   return h;
 }
 
-/** Chitin: tight highlight, low roughness variation, never metallic. */
-function shell(colour: string, opts: { rough?: number; flat?: boolean } = {}): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({
-    color: colour,
-    roughness: opts.rough ?? 0.42,
-    metalness: 0.08,
-    flatShading: opts.flat ?? false,
-  });
-}
-
-/**
- * A tapered tube from one point to another.
- *
- * Segments are built from explicit endpoints rather than chained Euler angles. The first
- * version of this rig chained rotations about Z and got the sign wrong, so every right-hand
- * leg swung *across* the body and the tibia pointed up: the animal looked like a dead
- * spider. Endpoints cannot express that mistake — if the foot is at y=0, the foot is on
- * the ground.
- */
-function segment(
-  from: THREE.Vector3,
-  to: THREE.Vector3,
-  r0: number,
-  r1: number,
+/** Places a mesh in one call, the way the original builder did. Keeps the body readable. */
+function put(
+  parent: THREE.Object3D,
+  geo: THREE.BufferGeometry,
   mat: THREE.Material,
+  pos: [number, number, number],
+  scale?: [number, number, number],
+  rot?: [number, number, number],
 ): THREE.Mesh {
-  const dir = new THREE.Vector3().subVectors(to, from);
-  const len = dir.length() || 0.001;
-  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r0, r1, len, 6), mat);
-  // Cylinders are built along +Y, so aim that axis down the segment.
-  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
-  mesh.position.copy(from).addScaledVector(dir, 0.5);
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(...pos);
+  if (scale) mesh.scale.set(...scale);
+  if (rot) mesh.rotation.set(...rot);
   mesh.castShadow = true;
+  parent.add(mesh);
   return mesh;
 }
 
 /**
- * One leg, as a real insect holds it: coxa out from the body, femur out and *up* to a knee
- * above the body line, then tibia and tarsus back down to the ground. That raised knee is
- * most of why an insect reads as an insect.
+ * One leg: hip held almost horizontally, a long femur out to a raised knee, then a tibia
+ * nearly twice its length angled back down to a foot.
+ *
+ * The proportions are the important part. Real insect legs are absurdly thin and long
+ * next to the body — around twenty times thinner than the thorax is wide — and getting
+ * that ratio wrong is what made the first attempt look like a beetle-shaped animal with
+ * dog legs.
  */
 function buildLeg(
   side: 1 | -1,
   pair: 0 | 1 | 2,
   body: BodyParams,
-  ride: number,
   mat: THREE.Material,
-): { group: THREE.Group; hip: THREE.Group } {
+  kneeMat: THREE.Material,
+  style: RigStyle,
+): { hip: THREE.Group; knee: THREE.Group } {
   const scale = body.size;
-  const reach = 0.62 * body.legs * scale;
-  // Middle pair shortest, hind pair longest — the usual arrangement.
-  const byPair = [0.94, 0.86, 1.18][pair]!;
-  const out = reach * byPair;
-  const thick = 0.042 * scale * (0.85 + body.girth * 0.2);
+  const reach = body.legs * scale;
+  const femurLen = 0.44 * reach;
+  const tibiaLen = 0.82 * reach;
+  const thick = 0.016 * scale;
 
-  const group = new THREE.Group();
   const hip = new THREE.Group();
-  group.add(hip);
+  // Front pair reaches forward, middle out, hind pair back.
+  hip.rotation.x = [-0.5, 0.1, 0.52][pair]!;
+  // Almost flat to the side: this is what lifts the knee above the body.
+  hip.rotation.z = side * -1.4;
 
-  // Front pair reaches forward, hind pair back.
-  const forward = [0.42, 0.0, -0.5][pair]! * out;
+  const femur = new THREE.CylinderGeometry(thick, thick * 0.82, femurLen, style.radial);
+  femur.translate(0, femurLen / 2, 0);
+  put(hip, femur, mat, [0, 0, 0]);
 
-  const origin = new THREE.Vector3(0, 0, 0);
-  // Knee sits above the body, out to the side and part-way along the reach.
-  const knee = new THREE.Vector3(side * out * 0.62, ride * 0.55, forward * 0.45);
-  // Foot on the floor, further out and further along.
-  const foot = new THREE.Vector3(side * out * 0.95, -ride, forward);
+  const knee = new THREE.Group();
+  knee.position.y = femurLen;
+  // A deeper bend than the original used. With a shallow one the tibia stayed almost
+  // horizontal and the legs radiated outward like a sea urchin instead of reaching down.
+  knee.rotation.z = side * 0.72;
+  hip.add(knee);
 
-  hip.add(segment(origin, knee, thick, thick * 1.25, mat));
-  const kneeBall = new THREE.Mesh(new THREE.SphereGeometry(thick * 1.3, 8, 6), mat);
-  kneeBall.position.copy(knee);
-  hip.add(kneeBall);
+  put(knee, new THREE.SphereGeometry(thick * 1.6, style.radial, style.radial - 2), kneeMat, [0, 0, 0]);
 
-  // Tibia stops short of the floor; the tarsus finishes the job, angled forward.
-  const ankle = new THREE.Vector3().lerpVectors(knee, foot, 0.78);
-  hip.add(segment(knee, ankle, thick * 0.9, thick * 0.55, mat));
-  hip.add(segment(ankle, foot, thick * 0.5, thick * 0.26, mat));
+  // Rotated a half turn, so it runs back down toward the floor.
+  const tibia = new THREE.CylinderGeometry(thick * 0.75, thick * 0.5, tibiaLen, style.radial);
+  tibia.translate(0, tibiaLen / 2, 0);
+  put(knee, tibia, mat, [0, 0, 0], undefined, [0, 0, Math.PI]);
 
-  return { group, hip };
+  // A foot at the far end, which is what makes the leg look planted.
+  put(knee, new THREE.SphereGeometry(thick * 1.1, style.radial, style.radial - 2), kneeMat, [0, -tibiaLen, 0]);
+
+  return { hip, knee };
 }
 
-/**
- * A mantis-style foreleg, folded in front: femur angled up and forward, tibia hinged back
- * along it, spines on the inner edge. The Z-shape is the whole silhouette.
- */
-function buildRaptorial(side: 1 | -1, body: BodyParams, mat: THREE.Material): THREE.Group {
+/** A mantis foreleg: thick femur up and forward, tibia folded back along it, inner spines. */
+function buildRaptorial(side: 1 | -1, body: BodyParams, mat: THREE.Material, style: RigStyle): THREE.Group {
   const scale = body.size;
   const root = new THREE.Group();
-  const thick = 0.055 * scale;
+  const thick = 0.03 * scale;
+  const femurLen = 0.42 * scale;
+  const tibiaLen = 0.34 * scale;
 
-  const origin = new THREE.Vector3(0, 0, 0);
-  const elbow = new THREE.Vector3(side * 0.2 * scale, 0.34 * scale, 0.34 * scale);
-  // Tibia folds back toward the head, ending above and in front of the shoulder.
-  const claw = new THREE.Vector3(side * 0.1 * scale, 0.14 * scale, 0.62 * scale);
+  root.rotation.set(-0.55, side * 0.4, side * 0.55);
 
-  root.add(segment(origin, elbow, thick * 1.4, thick, mat));
-  const joint = new THREE.Mesh(new THREE.SphereGeometry(thick * 1.5, 8, 6), mat);
-  joint.position.copy(elbow);
-  root.add(joint);
-  root.add(segment(elbow, claw, thick * 1.05, thick * 0.4, mat));
+  const femur = new THREE.CylinderGeometry(thick * 1.5, thick, femurLen, style.radial);
+  femur.translate(0, femurLen / 2, 0);
+  put(root, femur, mat, [0, 0, 0]);
 
-  // Spines along the grasping edge of the tibia.
-  const along = new THREE.Vector3().subVectors(claw, elbow);
+  const elbow = new THREE.Group();
+  elbow.position.y = femurLen;
+  // Folded sharply back on itself — the shape that says mantis at a glance.
+  elbow.rotation.z = -side * 2.5;
+  root.add(elbow);
+
+  const tibia = new THREE.CylinderGeometry(thick, thick * 0.5, tibiaLen, style.radial);
+  tibia.translate(0, tibiaLen / 2, 0);
+  put(elbow, tibia, mat, [0, 0, 0]);
+
   for (let i = 0; i < 5; i++) {
-    const spine = new THREE.Mesh(new THREE.ConeGeometry(thick * 0.28, thick * 2.1, 4), mat);
-    const at = new THREE.Vector3().copy(elbow).addScaledVector(along, 0.18 + i * 0.18);
-    spine.position.copy(at).add(new THREE.Vector3(0, -thick * 1.1, 0));
-    spine.rotation.x = Math.PI;
-    root.add(spine);
+    put(
+      elbow,
+      new THREE.ConeGeometry(thick * 0.26, thick * 1.7, 4),
+      mat,
+      [thick * 0.9, tibiaLen * (0.16 + i * 0.18), 0],
+      undefined,
+      [0, 0, -Math.PI / 2],
+    );
   }
 
   return root;
 }
 
-/** Membranous wings, or hardened elytra that split down the middle. */
-function buildWings(body: BodyParams, palette: Palette, abdomenLen: number): THREE.Group {
+/** Two membranous wings per side, swept back at rest. */
+function buildWings(palette: Palette, scale: number, style: RigStyle): THREE.Group {
   const group = new THREE.Group();
-  const scale = body.size;
+  const mat = style.material(palette.accent, 'wing', palette);
+  const veinMat = style.material(palette.carapace, 'shell', palette);
 
-  if (body.wings === 1) {
-    // Elytra: two hard covers over the abdomen, meeting at a seam.
-    const mat = shell(palette.carapace, { rough: 0.3 });
-    for (const side of [1, -1] as const) {
-      const geo = new THREE.SphereGeometry(1, 16, 12, 0, Math.PI, 0, Math.PI);
-      const cover = new THREE.Mesh(geo, mat);
-      cover.scale.set(0.3 * body.girth * scale, 0.24 * scale, abdomenLen * 0.52);
-      cover.position.set(side * 0.145 * body.girth * scale, 0.04 * scale, -abdomenLen * 0.42);
-      cover.rotation.y = side === 1 ? 0 : Math.PI;
-      cover.castShadow = true;
-      group.add(cover);
+  for (const side of [1, -1] as const) {
+    for (const pair of [0, 1] as const) {
+      const wing = new THREE.Group();
+      const len = (pair === 0 ? 0.95 : 0.72) * scale;
+      const wid = (pair === 0 ? 0.2 : 0.16) * scale;
+
+      const blade = new THREE.CircleGeometry(0.5, 16);
+      blade.rotateX(-Math.PI / 2);
+      put(wing, blade, mat, [0, 0, -len * 0.5], [wid * 2, 1, len * 2]);
+
+      const vein = new THREE.CylinderGeometry(0.006 * scale, 0.01 * scale, len, Math.max(4, style.radial - 4));
+      put(wing, vein, veinMat, [-wid * 0.85 * side, 0.004, -len * 0.5], undefined, [Math.PI / 2, 0, 0]);
+
+      wing.position.set(side * 0.04 * scale, 0.06 * scale, -0.06 * scale - pair * 0.09 * scale);
+      wing.rotation.set(pair === 0 ? -0.06 : -0.02, side * (pair === 0 ? 0.36 : 0.52), 0);
+      wing.name = `wing-${side}-${pair}`;
+      group.add(wing);
     }
-    return group;
   }
-
-  if (body.wings === 2) {
-    // Two pairs of translucent wings, swept back at rest.
-    const mat = new THREE.MeshStandardMaterial({
-      color: palette.accent,
-      transparent: true,
-      opacity: 0.3,
-      roughness: 0.15,
-      metalness: 0.1,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    });
-    const veinMat = new THREE.MeshStandardMaterial({ color: palette.carapace, roughness: 0.5 });
-
-    for (const side of [1, -1] as const) {
-      for (const pair of [0, 1] as const) {
-        const wing = new THREE.Group();
-        const len = (pair === 0 ? 1.25 : 1.0) * scale;
-        const wid = (pair === 0 ? 0.34 : 0.3) * scale;
-
-        const blade = new THREE.Mesh(new THREE.CircleGeometry(0.5, 18), mat);
-        blade.scale.set(wid * 2, len * 2, 1);
-        blade.position.set(0, 0, -len * 0.5);
-        blade.rotation.x = -Math.PI / 2;
-        wing.add(blade);
-
-        // A leading-edge vein stops the wing reading as a flat cut-out.
-        const vein = new THREE.Mesh(new THREE.CylinderGeometry(0.012 * scale, 0.02 * scale, len, 4), veinMat);
-        vein.position.set(-wid * 0.9 * side, 0.004, -len * 0.5);
-        vein.rotation.x = Math.PI / 2;
-        wing.add(vein);
-
-        wing.position.set(side * 0.1 * scale, 0.1 * scale, -0.1 * scale - pair * 0.12 * scale);
-        wing.rotation.set(pair === 0 ? -0.08 : -0.02, side * (pair === 0 ? 0.34 : 0.5), 0);
-        wing.name = `wing-${side}-${pair}`;
-        group.add(wing);
-      }
-    }
-    return group;
-  }
-
   return group;
 }
 
 /**
- * Builds the whole animal. `id` seeds the small asymmetries so a species always looks
- * identical between sessions and between the two players in a duel.
+ * Builds the whole animal.
+ *
+ * Two archetypes, chosen by whether the species has hardened wing cases: a beetle gets a
+ * flattened faceted dome with crust bumps, and everything else gets a slender tube thorax
+ * with a chained, tapering abdomen. Trying to serve both from one blobby shape was why the
+ * first version made a hornet and a stag beetle look like the same animal.
  */
-export function buildInsect(id: string, body: BodyParams, palette: Palette): InsectRig {
+export function buildInsect(
+  id: string,
+  body: BodyParams,
+  palette: Palette,
+  styleId?: StyleId,
+): InsectRig {
+  const style = styleId ? RIG_STYLES[styleId] : rigStyle();
   const rng = seeded(hashId(id));
   const group = new THREE.Group();
-  const scale = body.size;
+  const pose = new THREE.Group();
+  const torso = new THREE.Group();
+  group.add(pose);
+  pose.add(torso);
 
-  const carapace = shell(palette.carapace);
-  const underside = shell(palette.underside, { rough: 0.55 });
-  const accent = shell(palette.accent, { rough: 0.35 });
-  const eyeMat = new THREE.MeshStandardMaterial({
-    color: palette.eye,
-    roughness: 0.12,
-    metalness: 0.25,
-  });
+  const scale = body.size;
+  const carapace = style.material(palette.carapace, 'shell', palette);
+  const underside = style.material(palette.underside, 'under', palette);
+  const accent = style.material(palette.accent, 'accent', palette);
+  const eyeMat = style.material(palette.eye, 'eye', palette);
   const materials = [carapace, underside, accent, eyeMat];
 
-  const ride = 0.34 * scale * body.stance; // how high the body sits off the ground
-  const thoraxLen = 0.52 * scale;
-  const thoraxWid = 0.3 * scale * (0.72 + body.girth * 0.34);
-  const abdomenLen = 0.62 * scale * body.abdomen;
+  const beetle = body.wings === 1;
+  // Body radius is small: everything else is sized against it, as in the original.
+  const rad = 0.055 * scale * (0.8 + body.girth * 0.32);
+  const ride = 0.42 * scale * body.stance;
+  const thoraxLen = 0.62 * scale;
 
   // ── thorax ──
-  const thorax = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), carapace);
-  thorax.scale.set(thoraxWid, thoraxWid * 0.82, thoraxLen);
-  thorax.position.set(0, ride, 0);
-  thorax.castShadow = true;
-  group.add(thorax);
-
-  // Pronotum: the plate over the front of the thorax, prominent on beetles.
-  const pronotum = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), accent);
-  pronotum.scale.set(thoraxWid * 0.92, thoraxWid * 0.62, thoraxLen * 0.46);
-  pronotum.position.set(0, ride + thoraxWid * 0.16, thoraxLen * 0.5);
-  pronotum.castShadow = true;
-  group.add(pronotum);
-
-  // ── abdomen, tapering and segmented ──
-  const abdomen = new THREE.Group();
-  abdomen.position.set(0, ride, -thoraxLen * 0.75);
-  group.add(abdomen);
-
-  const SEGMENTS = 6;
-  for (let i = 0; i < SEGMENTS; i++) {
-    const t = i / (SEGMENTS - 1);
-    const taper = 1 - Math.pow(t, 1.6) * 0.72;
-    const seg = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), i % 2 ? underside : carapace);
-    const wid = thoraxWid * 0.96 * body.girth * taper;
-    seg.scale.set(wid, wid * 0.8, (abdomenLen / SEGMENTS) * 0.78);
-    seg.position.set(0, -t * 0.04 * scale, -(abdomenLen / SEGMENTS) * i);
-    seg.castShadow = true;
-    abdomen.add(seg);
+  if (beetle) {
+    // A flattened, faceted dome — the elytra read as the body itself on a beetle.
+    put(torso, new THREE.IcosahedronGeometry(rad * 6.2, style.icoDetail), carapace,
+      [0, ride, -0.05 * scale], [0.85, 0.44, 1.18]);
+    // Crust: small bumps riding the surface of the dome.
+    for (let i = 0; i < 14; i++) {
+      const bx = (rng() - 0.5) * rad * 7;
+      const bz = -0.05 * scale + (rng() - 0.5) * rad * 12;
+      const lift = Math.sqrt(Math.max(0, 1 - Math.pow(bx / (rad * 5), 2) - Math.pow(bz / (rad * 7), 2)));
+      put(torso, new THREE.IcosahedronGeometry(rad * (0.6 + rng() * 0.5), Math.max(0, style.icoDetail - 1)),
+        rng() < 0.4 ? accent : carapace,
+        [bx, ride + lift * rad * 2.4, bz], undefined,
+        [rng() * 3, rng() * 3, 0]);
+    }
+    // A seam down the middle, so the two wing cases are legible.
+    put(torso, new THREE.BoxGeometry(rad * 0.16, rad * 0.5, thoraxLen * 1.5), underside,
+      [0, ride + rad * 2.4, -0.05 * scale]);
+  } else {
+    const tube = new THREE.CylinderGeometry(rad * 0.9, rad, thoraxLen, style.radial + 1);
+    put(torso, tube, carapace, [0, ride, 0.18 * scale], undefined, [Math.PI / 2, 0, 0]);
+    // The waist: a narrow collar between thorax and abdomen.
+    put(torso, new THREE.CylinderGeometry(rad * 1.04, rad * 1.04, 0.08 * scale, style.radial + 1), accent,
+      [0, ride, 0.45 * scale], undefined, [Math.PI / 2, 0, 0]);
   }
 
   // ── head ──
   const head = new THREE.Group();
-  head.position.set(0, ride + thoraxWid * 0.1, thoraxLen * 0.92);
-  group.add(head);
+  head.position.set(0, ride + (beetle ? rad * 1.2 : 0.01 * scale), (beetle ? 0.42 : 0.56) * scale);
+  torso.add(head);
 
-  const headR = thoraxWid * 0.72;
-  const skull = new THREE.Mesh(new THREE.SphereGeometry(headR, 16, 12), carapace);
-  skull.scale.set(1.12, 0.92, 0.9);
-  skull.castShadow = true;
-  head.add(skull);
-
-  // Compound eyes: big, bulging, wrapped around the sides.
+  const headR = rad * (beetle ? 2.6 : 1.3);
+  // Elongated forward rather than round: a round head reads as a spider.
+  put(head, new THREE.IcosahedronGeometry(headR, style.icoDetail), carapace, [0, 0, 0], [0.85, 0.8, 1.25]);
   for (const side of [1, -1] as const) {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(headR * 0.46, 14, 10), eyeMat);
-    eye.scale.set(0.9, 1.1, 0.85);
-    eye.position.set(side * headR * 0.78, headR * 0.16, headR * 0.2);
-    head.add(eye);
+    put(head, new THREE.SphereGeometry(headR * 0.32, style.radial + 2, style.radial), eyeMat,
+      [side * headR * 0.62, headR * 0.2, headR * 0.4]);
   }
 
-  // ── mandibles ──
   if (body.mandibles) {
     const m = body.mandibles;
     for (const side of [1, -1] as const) {
-      const jaw = new THREE.Mesh(
-        new THREE.ConeGeometry(headR * 0.16 * m, headR * 1.5 * m, 5),
-        accent,
-      );
-      jaw.position.set(side * headR * 0.42, -headR * 0.2, headR * 0.9);
-      jaw.rotation.set(Math.PI / 2 - 0.35, 0, side * 0.42);
-      jaw.castShadow = true;
-      head.add(jaw);
+      put(head, new THREE.ConeGeometry(headR * 0.17 * m, headR * 1.6 * m, 5), accent,
+        [side * headR * 0.4, -headR * 0.16, headR * 0.95],
+        undefined, [Math.PI / 2 - 0.3, 0, side * 0.4]);
     }
   }
 
-  // ── antennae ──
+  // ── antennae: one long thin whip each, not a row of beads ──
   const antennae: THREE.Group[] = [];
   if (body.antennae > 0) {
-    const len = 0.85 * scale * body.antennae;
-    // Enough beads that they overlap into a segmented whip rather than a dotted line.
-    const beads = Math.max(9, Math.round(14 * body.antennae));
+    const len = 0.62 * scale * body.antennae;
     for (const side of [1, -1] as const) {
       const stalk = new THREE.Group();
-      stalk.position.set(side * headR * 0.5, headR * 0.42, headR * 0.55);
-      stalk.rotation.set(-0.5, side * 0.5, 0);
-      // Built from beads along a curve, which bends far more convincingly than a tube.
-      for (let i = 0; i < beads; i++) {
-        const t = i / (beads - 1);
-        const bead = new THREE.Mesh(
-          new THREE.SphereGeometry(0.032 * scale * (1 - t * 0.35), 6, 5),
-          accent,
-        );
-        bead.position.set(0, len * t, -Math.pow(t, 2) * len * 0.32);
-        stalk.add(bead);
-      }
+      stalk.position.set(side * headR * 0.42, headR * 0.35, headR * 0.5);
+      stalk.rotation.set(1.35, 0, side * -0.35);
+      const geo = new THREE.CylinderGeometry(0.007 * scale, 0.004 * scale, len, Math.max(4, style.radial - 2));
+      geo.translate(0, len / 2, 0);
+      put(stalk, geo, accent, [0, 0, 0]);
       head.add(stalk);
       antennae.push(stalk);
     }
   }
 
+  // ── abdomen: a chain, each segment hanging off the last so it curves ──
+  const abdomen = new THREE.Group();
+  abdomen.position.set(0, ride, (beetle ? -0.3 : 0.3) * scale);
+  torso.add(abdomen);
+
+  if (beetle) {
+    // Beetles keep theirs under the shell; just a stub so the silhouette closes.
+    put(abdomen, new THREE.IcosahedronGeometry(rad * 3.4, style.icoDetail), underside,
+      [0, -rad * 0.4, -thoraxLen * 0.5], [0.7, 0.5, 0.9]);
+  } else {
+    const segments = Math.max(3, Math.round(5 * body.abdomen));
+    const segLen = (0.27 * scale * body.abdomen * 5) / segments;
+    let parent: THREE.Object3D = abdomen;
+    let segRad = rad * 0.94 * body.girth;
+    for (let i = 0; i < segments; i++) {
+      const seg = new THREE.Group();
+      seg.position.z = i === 0 ? 0 : -segLen * 0.96;
+      // A constant small droop per joint, which is what gives the curve.
+      seg.rotation.x = -0.05;
+      const geo = new THREE.CylinderGeometry(segRad * 0.82, segRad, segLen, style.radial + 1);
+      put(seg, geo, i % 2 ? underside : carapace, [0, 0, -segLen / 2], undefined, [Math.PI / 2, 0, 0]);
+      parent.add(seg);
+      parent = seg;
+      segRad *= 0.85;
+    }
+  }
+
   // ── legs ──
   const legs: { femur: THREE.Group; tibia: THREE.Group }[] = [];
-  const pairZ = [thoraxLen * 0.42, 0, -thoraxLen * 0.46];
+  const rowZ = [0.42, 0.1, -0.24];
   for (const pair of [0, 1, 2] as const) {
-    // A raptorial species uses its first pair for grasping, not walking.
     if (pair === 0 && body.raptorial) continue;
     for (const side of [1, -1] as const) {
-      const hipHeight = ride - thoraxWid * 0.12;
-      const leg = buildLeg(side, pair, body, hipHeight, carapace);
-      leg.group.position.set(side * thoraxWid * 0.78, hipHeight, pairZ[pair]!);
-      group.add(leg.group);
-      // Poses and idle both nudge the whole leg at the hip, which is enough at this size
-      // and cannot fold a foot through the floor.
-      legs.push({ femur: leg.hip, tibia: leg.hip });
+      const leg = buildLeg(side, pair, body, carapace, accent, style);
+      leg.hip.position.set(side * rad * 0.9, ride - rad * 0.2, rowZ[pair]! * scale);
+      torso.add(leg.hip);
+      legs.push({ femur: leg.hip, tibia: leg.knee });
     }
   }
 
   const raptorialArms: THREE.Group[] = [];
   if (body.raptorial) {
     for (const side of [1, -1] as const) {
-      const arm = buildRaptorial(side, body, carapace);
-      arm.position.set(side * thoraxWid * 0.5, ride + thoraxWid * 0.1, thoraxLen * 0.62);
-      group.add(arm);
+      const arm = buildRaptorial(side, body, carapace, style);
+      arm.position.set(side * rad * 0.9, ride + rad * 0.4, 0.44 * scale);
+      torso.add(arm);
       raptorialArms.push(arm);
     }
   }
 
   // ── wings ──
-  const wings = buildWings(body, palette, abdomenLen);
-  wings.position.set(0, ride + thoraxWid * 0.42, -thoraxLen * 0.2);
-  group.add(wings);
-  const flappers = wings.children.filter((c) => c.name.startsWith('wing-'));
+  let flappers: THREE.Object3D[] = [];
+  if (body.wings === 2) {
+    const wings = buildWings(palette, scale, style);
+    wings.position.set(0, ride + rad * 1.1, 0.1 * scale);
+    torso.add(wings);
+    flappers = wings.children.filter((c) => c.name.startsWith('wing-'));
+  }
 
-  // Small per-species asymmetry so no two rigs look machine-stamped.
-  group.rotation.z = (rng() - 0.5) * 0.03;
+  // Outlines and hatching are added last, so they wrap every part including the limbs.
+  style.finish?.(group, palette);
 
-  const restLegs = legs.map((l) => ({ femur: l.femur.rotation.z, tibia: l.tibia.rotation.z }));
-  const restAntennae = antennae.map((a) => a.rotation.x);
-  const phases = legs.map(() => rng() * Math.PI * 2);
-  const antennaPhases = antennae.map(() => rng() * Math.PI * 2);
+  // Sit the whole animal so its feet meet y = 0, whatever the stance worked out to.
+  const box = new THREE.Box3().setFromObject(group);
+  group.position.y -= box.min.y;
 
   /*
-   * Clips move `body` and `pose` rather than `group`, because `group` carries the framing
-   * transform and the viewer's own yaw. Writing poses onto it would fight both.
+   * Only materials with an emissive channel can glow. Styles that use toon or basic
+   * materials simply do not, rather than the clips having to know which style is active.
    */
-  const pose = new THREE.Group();
-  const torso = new THREE.Group();
-  // Re-parent everything built so far under the two pose groups.
-  const built = [...group.children];
-  group.add(pose);
-  pose.add(torso);
-  for (const child of built) torso.add(child);
-
-  const glow = accent;
-  const glowColour = new THREE.Color(palette.accent);
-  glow.emissive = glowColour;
-  glow.emissiveIntensity = 0;
+  const emissive = 'emissive' in accent ? (accent as THREE.MeshStandardMaterial) : null;
+  if (emissive) emissive.emissive = new THREE.Color(palette.accent);
+  const setGlow = (intensity: number): void => {
+    if (emissive) emissive.emissiveIntensity = intensity;
+  };
 
   const parts: Parts = {
     root: pose,
     torso,
     head,
     abdomen,
-    wings: flappers.length > 0 ? flappers : wings.children,
+    wings: flappers,
     arms: raptorialArms,
     legs,
-    glow,
-    glowColour,
+    setGlow,
   };
+
+  const restLegs = legs.map((l) => ({ femur: l.femur.rotation.z, tibia: l.tibia.rotation.z }));
+  const restAntennae = antennae.map((a) => a.rotation.z);
+  const phases = legs.map(() => rng() * Math.PI * 2);
+  const antennaPhases = antennae.map(() => rng() * Math.PI * 2);
 
   let clip: { spec: ClipSpec; started: number } | null = null;
   let now = 0;
@@ -606,33 +578,29 @@ export function buildInsect(id: string, body: BodyParams, palette: Palette): Ins
     tick(t) {
       now = t;
 
-      // Idle first, then the clip on top, so a pose never has to restate the idle.
       pose.position.set(0, 0, 0);
       pose.rotation.set(0, 0, 0);
       torso.rotation.set(0, 0, 0);
-      head.rotation.x = 0;
+      head.rotation.set(0, 0, 0);
       abdomen.rotation.x = 0;
-      glow.emissiveIntensity = 0;
+      setGlow(0);
 
-      // Breathing: the abdomen is the soft part, so it is the part that moves.
-      const breathe = Math.sin(t * 1.6) * 0.5 + 0.5;
-      abdomen.scale.setScalar(1 + breathe * 0.035);
-      abdomen.position.y = ride - breathe * 0.008 * scale;
+      // The whole body sways, which is what the original did and reads better than moving
+      // any single part.
+      torso.rotation.z = Math.sin(t * 1.15) * 0.055;
+      torso.rotation.x = Math.sin(t * 0.9 + 1.3) * 0.02;
+      head.rotation.y = Math.sin(t * 0.5) * 0.2;
 
-      // Legs micro-adjust, out of phase, the way a standing insect never quite settles.
-      legs.forEach((leg, i) => {
-        const wobble = Math.sin(t * 2.1 + phases[i]!) * 0.035;
-        leg.femur.rotation.z = restLegs[i]!.femur + wobble;
-        leg.tibia.rotation.z = restLegs[i]!.tibia - wobble * 1.4;
-      });
-
-      // Antennae sweep constantly — the single most alive-looking thing an insect does.
       antennae.forEach((a, i) => {
-        a.rotation.x = restAntennae[i]! + Math.sin(t * 1.15 + antennaPhases[i]!) * 0.26;
-        a.rotation.z = Math.cos(t * 0.9 + antennaPhases[i]!) * 0.16;
+        a.rotation.z = restAntennae[i]! + Math.sin(t * 1.7 + antennaPhases[i]!) * 0.14;
       });
 
-      // Membranous wings shiver rather than flap; a flap at rest would look wrong.
+      legs.forEach((leg, i) => {
+        const wobble = Math.sin(t * 2.1 + phases[i]!) * 0.03;
+        leg.femur.rotation.z = restLegs[i]!.femur + wobble;
+        leg.tibia.rotation.z = restLegs[i]!.tibia - wobble * 1.2;
+      });
+
       flappers.forEach((w, i) => {
         w.rotation.z = Math.sin(t * 9 + i) * 0.03;
       });
@@ -642,7 +610,6 @@ export function buildInsect(id: string, body: BodyParams, palette: Palette): Ins
         if (progress >= 1) {
           clip = null;
         } else {
-          // Ease out and back: 0 → 1 → 0, so the pose returns to rest by itself.
           const eased = Math.sin(Math.min(1, Math.max(0, progress)) * Math.PI);
           clip.spec.apply(eased, parts);
         }

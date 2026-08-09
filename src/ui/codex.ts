@@ -21,6 +21,7 @@ import { photoCredit } from './photos';
 import { el, escapeHtml, qs } from './dom';
 import { CLIP_DURATION, clipForSkill, createLivingCard, type LivingCard } from './livingCard';
 import { openPanel } from './panel';
+import { openStylePicker } from './stylePicker';
 
 export function openCodex(state: GameState): void {
   const discovered = new Set(state.discovered);
@@ -37,6 +38,7 @@ export function openCodex(state: GameState): void {
     <div class="codex">
       <div class="codex__bar">
         <div class="chips chips--rarity"></div>
+        <button class="btn btn--ghost codex__styles" type="button">Model style…</button>
         <label class="toggle">
           <input class="toggle__input" type="checkbox" />
           <span class="toggle__label">Only undiscovered</span>
@@ -60,6 +62,8 @@ export function openCodex(state: GameState): void {
     chips.appendChild(chip);
   }
   chips.firstElementChild?.classList.add('is-active');
+
+  qs(body, '.codex__styles').addEventListener('click', () => openStylePicker());
 
   qs<HTMLInputElement>(body, '.toggle__input').addEventListener('change', (e) => {
     onlyMissing = (e.target as HTMLInputElement).checked;

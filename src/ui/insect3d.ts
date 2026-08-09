@@ -66,8 +66,9 @@ function ensureRenderer(): { renderer: THREE.WebGLRenderer; camera: THREE.Perspe
     camera = new THREE.PerspectiveCamera(30, 1, 0.05, 40);
     // Slightly above and back: enough elevation to read the six legs, not so much that it
     // becomes a top-down diagram.
-    camera.position.set(0, 1.05, 3.3);
-    camera.lookAt(0, 0.02, 0);
+    // Above and off to one side, so a long abdomen is not hidden behind the head.
+    camera.position.set(1.3, 1.15, 2.6);
+    camera.lookAt(0, 0, 0);
     return { renderer, camera };
   } catch {
     supported = false;
@@ -92,19 +93,27 @@ function lightScene(scene: THREE.Scene): void {
   scene.add(rim);
 }
 
-/** Frames the animal so long species do not shrink into nothing and stubby ones fill out. */
-function frame(scene: THREE.Scene, rig: InsectRig): void {
+/**
+ * Frames the animal so long species do not shrink into nothing and stubby ones fill out.
+ *
+ * Done through a wrapper group: the rig already offsets itself so its feet rest on the
+ * floor, and scaling plus re-centring the same group applied that offset twice, which
+ * pushed the animal off to one side of its view.
+ */
+function frame(scene: THREE.Scene, rig: InsectRig): THREE.Group {
+  const wrapper = new THREE.Group();
+  wrapper.add(rig.group);
+
   const box = new THREE.Box3().setFromObject(rig.group);
   const size = box.getSize(new THREE.Vector3());
   const centre = box.getCenter(new THREE.Vector3());
-  const extent = Math.max(size.x, size.y, size.z, 0.001);
+  // Fit on the footprint diagonal and the height, not on the single longest axis.
+  const extent = Math.max(Math.hypot(size.x, size.z) * 0.72, size.y, 0.001);
 
-  // Normalise to a constant on-screen size, then re-centre. Leaving margin matters: a long
-  // abdomen was being clipped off the bottom of the frame.
-  const s = 1.3 / extent;
-  rig.group.scale.multiplyScalar(s);
-  rig.group.position.sub(centre.multiplyScalar(s));
-  scene.add(rig.group);
+  rig.group.position.sub(centre);
+  wrapper.scale.setScalar(1.45 / extent);
+  scene.add(wrapper);
+  return wrapper;
 }
 
 function makeScene(species: Species): { scene: THREE.Scene; rig: InsectRig } {

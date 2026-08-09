@@ -2971,3 +2971,76 @@ button {
   transform: translate(-50%, -100%) translateY(-5px) scale(1.06);
   box-shadow: 0 0 0 2px rgba(255, 90, 60, 0.9), 0 0 26px -2px rgba(255, 90, 60, 0.85);
 }
+
+/* ── model style picker ──────────────────────────────────── */
+
+.styles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1rem;
+}
+
+.style-card {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 0.9rem 0.8rem 1rem;
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(255, 246, 224, 0.14), rgba(255, 246, 224, 0.05));
+  text-align: center;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.style-card.is-chosen {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 1px var(--amber), 0 0 24px -6px var(--amber);
+}
+
+.style-card__view {
+  width: 100%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  /* A neutral pit so a dark style and a pale one are judged on equal ground. */
+  background: radial-gradient(ellipse at 50% 78%, rgba(0, 0, 0, 0.3), transparent 66%),
+    linear-gradient(180deg, rgba(120, 130, 110, 0.35), rgba(60, 68, 52, 0.5));
+  overflow: hidden;
+}
+
+.style-card__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.style-card__name {
+  margin: 0.3rem 0 0;
+  font-family: var(--font);
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.style-card__blurb {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--ink-dim);
+  min-height: 3.2em;
+}
+
+.style-card__pick {
+  margin-top: 0.3rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+.codex__styles {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.styles__subject {
+  margin-bottom: 1rem;
+}

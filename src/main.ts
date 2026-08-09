@@ -9,6 +9,7 @@ import { el, escapeHtml, qs } from './ui/dom';
 import { openHatchery } from './ui/hatchery';
 import { Hud } from './ui/hud';
 import { installCreatureHydration, refreshCreatures } from './ui/creature';
+import { onRigStyleChange } from './scene/rigStyle';
 import { initDisplayMode, onDisplayModeChange } from './ui/displayMode';
 import { openNest } from './ui/nest';
 
@@ -118,6 +119,8 @@ async function main(): Promise<void> {
   installCreatureHydration();
   // Flipping the view redraws whatever is already on screen, panels included.
   onDisplayModeChange(() => refreshCreatures());
+  // A new model style has to reach every insect already on screen, not just the next one.
+  onRigStyleChange(() => refreshCreatures());
 
   try {
     await backend.ensureLocalPlayer();

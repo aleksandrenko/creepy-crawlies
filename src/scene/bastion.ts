@@ -70,13 +70,14 @@ export class Bastion {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = 1.28;
     this.renderer.domElement.classList.add('bastion-canvas');
     host.appendChild(this.renderer.domElement);
 
-    this.scene.background = new THREE.Color('#0b110e');
-    // Enough haze to separate the far trunks from the near ones, no more.
-    this.scene.fog = new THREE.FogExp2('#101a15', 0.019);
+    this.scene.background = new THREE.Color('#33422f');
+    // Light, thin haze. Dark dense fog separated the trunks well but made the clearing feel
+    // nocturnal, which was most of why the whole game read as gloomy.
+    this.scene.fog = new THREE.FogExp2('#3e5136', 0.0075);
 
     // Narrow FOV — a macro lens compresses depth, and a wide one would make the
     // giant trunks splay outward and read as small cones instead.
@@ -102,11 +103,12 @@ export class Bastion {
     this.scene.add(buildUndergrowth(SEED + 2));
     this.scene.add(buildLightShafts(SEED + 3));
 
-    // Sky/ground bounce. Green from below because of all the foliage.
-    this.scene.add(new THREE.HemisphereLight('#9fc3e8', '#3a4426', 1.35));
+    // Sky/ground bounce, turned well up: this is the light that fills the shadows, and it
+    // does more for the mood than the sun does.
+    this.scene.add(new THREE.HemisphereLight('#cfe4ff', '#6b7a4a', 2.6));
 
     // Late-afternoon sun raking down through the canopy, from high up and off to one side.
-    const sun = new THREE.DirectionalLight('#ffd9a0', 2.8);
+    const sun = new THREE.DirectionalLight('#fff2d8', 3.4);
     sun.position.set(-11, 26, 9);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -121,7 +123,7 @@ export class Bastion {
     this.scene.add(sun);
 
     // Cool fill from the opposite side so shadowed geometry does not go black.
-    const fill = new THREE.DirectionalLight('#8fb6c9', 0.5);
+    const fill = new THREE.DirectionalLight('#bcd8e8', 1.1);
     fill.position.set(8, 6, -9);
     this.scene.add(fill);
   }

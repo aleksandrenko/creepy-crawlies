@@ -20,6 +20,8 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 const OUT_DIR = path.join(process.cwd(), 'public', 'insects');
+// Photos for species not in `roster/active.ts` live here: kept in the repo, not shipped.
+const PARKED_DIR = path.join(process.cwd(), 'assets', 'insects-inactive');
 const CREDITS = path.join(OUT_DIR, 'credits.json');
 const WIDTH = 900;
 const BATCH = 50;
@@ -203,7 +205,9 @@ console.log(`roster: ${species.length} species`);
 await mkdir(OUT_DIR, { recursive: true });
 
 const credits = existsSync(CREDITS) ? JSON.parse(await readFile(CREDITS, 'utf8')) : {};
-const todo = species.filter((s) => FORCE || !existsSync(path.join(OUT_DIR, `${s.id}.jpg`)) || !credits[s.id]);
+const has = (id) =>
+  existsSync(path.join(OUT_DIR, `${id}.jpg`)) || existsSync(path.join(PARKED_DIR, `${id}.jpg`));
+const todo = species.filter((s) => FORCE || !has(s.id) || !credits[s.id]);
 console.log(`${species.length - todo.length} already have a photo; fetching ${todo.length}`);
 
 // Scientific name first — it disambiguates far better than a common name.

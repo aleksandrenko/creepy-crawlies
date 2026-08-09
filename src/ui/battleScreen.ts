@@ -163,17 +163,15 @@ export function mountBattle(
       );
       arena.setActive(state.winner ? null : state.activeUnitId);
 
-      // Highlight what the armed skill may legally hit.
-      const armedActor = pendingSkill !== null ? activeUnit(state) : null;
-      const legal = armedActor
-        ? new Set(
-            legalTargets(state, armedActor, compiled(armedActor.speciesId).skills[pendingSkill!].mechanic)
-              .map((t) => t.id),
-          )
-        : new Set<string>();
-      for (const label of arena.el.querySelectorAll<HTMLElement>('.arena3d__label')) {
-        label.classList.toggle('is-targetable', legal.has(label.dataset.unit ?? ''));
-      }
+      // Tell the arena what the armed skill may legally hit; it handles the highlighting,
+      // the cursor, and clicks on either the body or the name plate.
+      const armedActor = pendingSkill !== null && controller.isMyTurn() ? activeUnit(state) : null;
+      arena.setPickable(
+        armedActor
+          ? legalTargets(state, armedActor, compiled(armedActor.speciesId).skills[pendingSkill!].mechanic)
+              .map((t) => t.id)
+          : [],
+      );
     } else {
       renderSide(them, state, opposite(controller.mySide), state.activeUnitId);
       renderSide(mine, state, controller.mySide, state.activeUnitId);
@@ -429,23 +427,30 @@ export function mountBattle(
   if (arena) wireArenaTargeting();
 
   /**
-   * In the arena there are no cards to click, so the floating labels are the hit targets.
-   * Rebuilt on every render would be wasteful; instead one delegated listener reads the
-   * pending skill at click time.
+   * Targeting in the arena: click the animal itself, or its name plate.
+   *
+   * The arena raycasts the bodies and filters by what it was told is pickable, so both
+   * routes land here and neither can pick an illegal target.
    */
   function wireArenaTargeting(): void {
-    arena!.el.addEventListener('click', (e) => {
-      const label = (e.target as HTMLElement).closest<HTMLElement>('.arena3d__label');
-      const unitId = label?.dataset.unit;
+    const submit = (unitId: string): void => {
       const state = controller.state();
-      if (!unitId || !state || pendingSkill === null) return;
+      if (!state || pendingSkill === null || !controller.isMyTurn()) return;
       const actor = activeUnit(state);
-      if (!actor || !controller.isMyTurn()) return;
-      const mechanic = compiled(actor.speciesId).skills[pendingSkill].mechanic;
-      if (!legalTargets(state, actor, mechanic).some((t) => t.id === unitId)) return;
+      if (!actor) return;
       const skill = pendingSkill;
       pendingSkill = null;
       controller.submit({ unitId: actor.id, skill, targetId: unitId });
+    };
+
+    arena!.onPick = submit;
+
+    // The plates sit in the DOM above the canvas, so they need their own listener.
+    arena!.el.addEventListener('click', (e) => {
+      const label = (e.target as HTMLElement).closest<HTMLElement>('.arena3d__label');
+      if (label?.classList.contains('is-targetable') && label.dataset.unit) {
+        submit(label.dataset.unit);
+      }
     });
   }
 

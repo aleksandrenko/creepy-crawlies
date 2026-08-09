@@ -68,9 +68,9 @@ export function buildGround(seed: number): THREE.Mesh {
   const pos = geo.getAttribute('position') as THREE.BufferAttribute;
   const colors = new Float32Array(pos.count * 3);
 
-  const dirt = new THREE.Color('#5c4632');
-  const packed = new THREE.Color('#7d6247');
-  const trampled = new THREE.Color('#4a4f31');
+  const dirt = new THREE.Color('#8a6b4c');
+  const packed = new THREE.Color('#a8855f');
+  const trampled = new THREE.Color('#6e7a48');
   const c = new THREE.Color();
 
   for (let i = 0; i < pos.count; i++) {
@@ -113,9 +113,9 @@ export function buildForest(seed: number): THREE.Group {
   const group = new THREE.Group();
   const r = rng(seed);
 
-  const barkMat = new THREE.MeshStandardMaterial({ color: '#4a3a2c', roughness: 0.98, flatShading: true });
-  const barkDarkMat = new THREE.MeshStandardMaterial({ color: '#241c15', roughness: 1, flatShading: true });
-  const canopyMat = new THREE.MeshStandardMaterial({ color: '#22331f', roughness: 0.9, flatShading: true });
+  const barkMat = new THREE.MeshStandardMaterial({ color: '#6b5440', roughness: 0.96, flatShading: true });
+  const barkDarkMat = new THREE.MeshStandardMaterial({ color: '#42342a', roughness: 1, flatShading: true });
+  const canopyMat = new THREE.MeshStandardMaterial({ color: '#3e5c34', roughness: 0.88, flatShading: true });
 
   // --- the giant near trunks, spread across the arc that is not facing the camera ---
   const NEAR = 11;
@@ -236,8 +236,8 @@ export function buildUndergrowth(seed: number): THREE.Group {
     STALKS,
   );
   stalks.castShadow = true;
-  const grassA = new THREE.Color('#6d7f3c');
-  const grassB = new THREE.Color('#3c5228');
+  const grassA = new THREE.Color('#8fa84c');
+  const grassB = new THREE.Color('#5a7a34');
   for (let i = 0; i < STALKS; i++) {
     const radius = CLEARING_RADIUS + 0.6 - Math.pow(r(), 2.4) * (CLEARING_RADIUS - 1.5);
     const angle = r() * Math.PI * 2;
@@ -328,7 +328,7 @@ export function buildUndergrowth(seed: number): THREE.Group {
   }
 
   // --- moss patches, flat and soft, to break up the bare dirt ---
-  const mossMat = new THREE.MeshStandardMaterial({ color: '#46612f', roughness: 0.95, flatShading: true });
+  const mossMat = new THREE.MeshStandardMaterial({ color: '#5e8040', roughness: 0.93, flatShading: true });
   for (let i = 0; i < 9; i++) {
     const patch = new THREE.Mesh(new THREE.CircleGeometry(between(r, 0.7, 1.9), 8), mossMat);
     patch.rotation.x = -Math.PI / 2;

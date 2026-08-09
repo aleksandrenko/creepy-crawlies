@@ -75,9 +75,18 @@ export class BattleArena {
     rise: number;
   }[] = [];
 
-  private readonly ring: THREE.Mesh;
+  private readonly ring: THREE.Group;
   private ringFor: string | null = null;
+  /** Elapsed time at the previous frame, so the delta can be derived rather than asked for. */
+  private lastFrameAt = 0;
   private disposed = false;
+
+  private readonly raycaster = new THREE.Raycaster();
+  private readonly pointer = new THREE.Vector2(-2, -2);
+  /** Units the player may click right now. Empty means nothing is being targeted. */
+  private pickable = new Set<string>();
+  /** Set by the owner; fires when a pickable unit is clicked, on the body or its plate. */
+  onPick: (unitId: string) => void = () => {};
 
   constructor(host: HTMLElement) {
     this.el = document.createElement('div');
@@ -89,13 +98,14 @@ export class BattleArena {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.1;
+    this.renderer.toneMappingExposure = 1.25;
     this.renderer.domElement.className = 'arena3d__canvas';
     this.el.appendChild(this.renderer.domElement);
 
-    this.scene.background = new THREE.Color('#0b110e');
-    // Dense enough that the floor fades into the dark rather than ending at a visible rim.
-    this.scene.fog = new THREE.FogExp2('#0b110e', 0.075);
+    this.scene.background = new THREE.Color('#38492f');
+    // Thin, light haze. Dense black fog hid the rim but made the whole field feel like a
+    // cave; a bright surround does the same job and reads as daylight.
+    this.scene.fog = new THREE.FogExp2('#40522f', 0.028);
 
     // Looking down the length of the field, from behind and above the player's line.
     this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 90);
@@ -108,8 +118,74 @@ export class BattleArena {
 
     this.onResize = this.onResize.bind(this);
     window.addEventListener('resize', this.onResize);
+    this.attachPicking();
     this.resize();
     this.renderer.setAnimationLoop(() => this.frame());
+  }
+
+  /**
+   * Clicking the animal itself, not just its name plate.
+   *
+   * A raycast against the rigs is the only way to hit a shape that irregular — a box over
+   * each insect would either miss the legs or overlap its neighbour.
+   */
+  private attachPicking(): void {
+    const canvas = this.renderer.domElement;
+
+    const toLocal = (e: PointerEvent | MouseEvent): void => {
+      const rect = canvas.getBoundingClientRect();
+      this.pointer.set(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1,
+      );
+    };
+
+    canvas.addEventListener('pointermove', (e) => {
+      toLocal(e);
+      const hit = this.pickAt();
+      canvas.style.cursor = hit && this.pickable.has(hit) ? 'pointer' : 'default';
+      // Light up whatever is under the pointer, so it is obvious what a click would hit.
+      for (const [id, label] of this.labels) {
+        label.classList.toggle('is-hovered', id === hit && this.pickable.has(id));
+      }
+    });
+
+    canvas.addEventListener('pointerleave', () => {
+      this.pointer.set(-2, -2);
+      canvas.style.cursor = 'default';
+      for (const label of this.labels.values()) label.classList.remove('is-hovered');
+    });
+
+    canvas.addEventListener('click', (e) => {
+      toLocal(e);
+      const hit = this.pickAt();
+      if (hit && this.pickable.has(hit)) this.onPick(hit);
+    });
+  }
+
+  /** Which unit is under the pointer, if any. */
+  private pickAt(): string | null {
+    const groups = [...this.fighters.values()].filter((f) => !f.down).map((f) => f.rig.group);
+    if (groups.length === 0) return null;
+    this.raycaster.setFromCamera(this.pointer, this.camera);
+    for (const hit of this.raycaster.intersectObjects(groups, true)) {
+      let node: THREE.Object3D | null = hit.object;
+      while (node) {
+        const id = node.userData.unitId as string | undefined;
+        if (id) return id;
+        node = node.parent;
+      }
+    }
+    return null;
+  }
+
+  /** Sets which units are clickable, and marks their plates. */
+  setPickable(ids: Iterable<string>): void {
+    this.pickable = new Set(ids);
+    for (const [id, label] of this.labels) {
+      label.classList.toggle('is-targetable', this.pickable.has(id));
+      if (!this.pickable.has(id)) label.classList.remove('is-hovered');
+    }
   }
 
   // ── the ground ──────────────────────────────────────────────────────────────
@@ -117,7 +193,7 @@ export class BattleArena {
   private buildGround(): void {
     const dirt = new THREE.Mesh(
       new THREE.CircleGeometry(16, 64),
-      new THREE.MeshStandardMaterial({ color: '#6b5138', roughness: 0.97 }),
+      new THREE.MeshStandardMaterial({ color: '#a3805a', roughness: 0.95 }),
     );
     dirt.rotation.x = -Math.PI / 2;
     dirt.receiveShadow = true;
@@ -139,8 +215,8 @@ export class BattleArena {
     );
     leaf.receiveShadow = true;
     const colour = new THREE.Color();
-    const leafA = new THREE.Color('#8a6427');
-    const leafB = new THREE.Color('#4a3418');
+    const leafA = new THREE.Color('#c09040');
+    const leafB = new THREE.Color('#7d5c28');
     for (let i = 0; i < 140; i++) {
       const a = (i * 2.399) % (Math.PI * 2);
       const r = 2.4 + ((i * 7919) % 1000) / 1000 * 11;
@@ -184,7 +260,7 @@ export class BattleArena {
     // into the undergrowth, which a bare horizon does not.
     const scrub = new THREE.InstancedMesh(
       new THREE.IcosahedronGeometry(1, 1),
-      new THREE.MeshStandardMaterial({ color: '#1d2c1f', roughness: 0.9, flatShading: true }),
+      new THREE.MeshStandardMaterial({ color: '#3f6438', roughness: 0.88, flatShading: true }),
       90,
     );
     for (let i = 0; i < 90; i++) {
@@ -200,9 +276,9 @@ export class BattleArena {
     scrub.instanceMatrix.needsUpdate = true;
     this.scene.add(scrub);
 
-    this.scene.add(new THREE.HemisphereLight(0x9fc3e8, 0x3a4426, 1.25));
+    this.scene.add(new THREE.HemisphereLight(0xd4e8ff, 0x7a8a52, 2.5));
 
-    const sun = new THREE.DirectionalLight(0xffd9a0, 2.7);
+    const sun = new THREE.DirectionalLight(0xfff4de, 3.4);
     sun.position.set(-6, 11, 6);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -214,26 +290,51 @@ export class BattleArena {
     sun.shadow.normalBias = 0.02;
     this.scene.add(sun);
 
-    const fill = new THREE.DirectionalLight(0x8fb6c9, 0.6);
+    const fill = new THREE.DirectionalLight(0xc0dcec, 1.2);
     fill.position.set(6, 4, -6);
     this.scene.add(fill);
   }
 
-  /** The marker under whoever is about to act. */
-  private buildRing(): THREE.Mesh {
-    const group = new THREE.Mesh(
-      new THREE.RingGeometry(0.52, 0.78, 48),
+  /**
+   * The marker under whoever is about to act.
+   *
+   * A filled, glowing pool rather than a thin ring, and it turns slowly. Impact bursts are
+   * also circles on the ground, and when a team-wide heal fired one under every ally the
+   * two were indistinguishable — it looked as though everyone had the turn marker. Shape
+   * and motion, not just colour, are what separate them now.
+   */
+  private buildRing(): THREE.Group {
+    const group = new THREE.Group();
+
+    const pool = new THREE.Mesh(
+      new THREE.CircleGeometry(0.92, 44),
       new THREE.MeshBasicMaterial({
-        color: 0xffc861,
+        color: 0xffa424,
         transparent: true,
-        opacity: 0.85,
+        opacity: 0.42,
         side: THREE.DoubleSide,
-        blending: THREE.AdditiveBlending,
         depthWrite: false,
       }),
     );
-    group.rotation.x = -Math.PI / 2;
-    group.position.y = 0.03;
+    pool.rotation.x = -Math.PI / 2;
+    group.add(pool);
+
+    // A broken arc, so the marker is visibly rotating and cannot be mistaken for a burst.
+    const arc = new THREE.Mesh(
+      new THREE.RingGeometry(0.86, 1.0, 40, 1, 0, Math.PI * 1.35),
+      new THREE.MeshBasicMaterial({
+        color: 0xff9a12,
+        transparent: true,
+        opacity: 1,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    arc.rotation.x = -Math.PI / 2;
+    arc.name = 'arc';
+    group.add(arc);
+
+    group.position.y = 0.04;
     group.visible = false;
     return group;
   }
@@ -263,12 +364,20 @@ export class BattleArena {
       // Player's line nearer the camera, opponent's further away.
       const z = unit.side === 'a' ? 2.6 : -2.6;
       const x = (unit.slot - 1) * 3.1;
-      const facing = unit.side === 'a' ? 0 : Math.PI;
+      // The rig is modelled facing +z and the camera sits on +z, so the player's own team
+      // has to be turned around: backs to the camera, faces to the enemy.
+      const facing = unit.side === 'a' ? Math.PI : 0;
 
       const home = new THREE.Vector3(x, 0, z);
       rig.group.position.copy(home);
       rig.group.rotation.y = facing;
       this.scene.add(rig.group);
+
+      // Every mesh in the rig points back at its owner, so a raycast hit anywhere on the
+      // animal resolves to the right unit.
+      rig.group.traverse((o) => {
+        o.userData.unitId = unit.id;
+      });
 
       this.fighters.set(unit.id, { id: unit.id, rig, home, facing, down: false });
       this.labels.set(unit.id, this.makeLabel(unit.id));
@@ -321,6 +430,13 @@ export class BattleArena {
       // A downed insect rolls onto its side and stays there.
       const wasDown = fighter.down;
       fighter.down = row.hp <= 0;
+
+      // The active marker has to go with it. Checking only at setActive() time left a ring
+      // glowing under a corpse whenever a unit died during its own turn.
+      if (fighter.down && this.ringFor === row.id) {
+        this.ring.visible = false;
+        this.ringFor = null;
+      }
       if (fighter.down !== wasDown) {
         // On its back, settled onto the floor, still on its own square.
         fighter.rig.group.rotation.z = fighter.down ? Math.PI * 0.85 : 0;
@@ -440,7 +556,6 @@ export class BattleArena {
         color: colour,
         transparent: true,
         opacity: 0.95,
-        blending: THREE.AdditiveBlending,
         depthWrite: false,
       }),
     );
@@ -453,19 +568,20 @@ export class BattleArena {
 
   private ringAt(fighter: Fighter, colour: number): void {
     const mesh = new THREE.Mesh(
-      new THREE.TorusGeometry(0.4, 0.035, 8, 40),
+      new THREE.TorusGeometry(0.7, 0.05, 8, 40),
       new THREE.MeshBasicMaterial({
         color: colour,
         transparent: true,
-        opacity: 0.9,
-        blending: THREE.AdditiveBlending,
+        opacity: 0.95,
         depthWrite: false,
       }),
     );
     mesh.rotation.x = Math.PI / 2;
-    mesh.position.copy(fighter.rig.group.position).setY(0.1);
+    // Starts at chest height and climbs: on the floor it was indistinguishable from the
+    // turn marker, especially when a team-wide skill put one under every ally at once.
+    mesh.position.copy(fighter.rig.group.position).setY(0.55);
     this.scene.add(mesh);
-    this.fx.push({ mesh, age: 0, dur: 0.7, kind: 'ring', rise: 0.7 });
+    this.fx.push({ mesh, age: 0, dur: 0.42, kind: 'ring', rise: 1.1 });
   }
 
   private wait(ms: number): Promise<void> {
@@ -476,8 +592,18 @@ export class BattleArena {
 
   private frame(): void {
     if (this.disposed) return;
+
+    /*
+     * The frame delta is derived from elapsed time, NOT from `clock.getDelta()`.
+     *
+     * `getElapsedTime()` calls `getDelta()` internally and resets the clock, so asking for
+     * both in one frame returns a delta of roughly zero. That made effect ages stand still:
+     * impact rings never expired, piling up one per hit until every insect sat inside a
+     * circle and the turn marker was impossible to pick out.
+     */
     const t = this.clock.getElapsedTime();
-    const dt = Math.min(0.05, this.clock.getDelta());
+    const dt = Math.min(0.05, Math.max(0, t - this.lastFrameAt));
+    this.lastFrameAt = t;
 
     for (const fighter of this.fighters.values()) {
       if (!fighter.down) fighter.rig.tick(t);
@@ -486,10 +612,20 @@ export class BattleArena {
     // The active marker breathes, and follows its owner if it is mid-walk.
     if (this.ring.visible && this.ringFor) {
       const owner = this.fighters.get(this.ringFor);
-      if (owner) this.ring.position.set(owner.rig.group.position.x, 0.03, owner.rig.group.position.z);
-      const pulse = 1 + Math.sin(t * 3.4) * 0.09;
-      this.ring.scale.set(pulse, pulse, 1);
-      (this.ring.material as THREE.MeshBasicMaterial).opacity = 0.62 + Math.sin(t * 3.4) * 0.22;
+      if (!owner || owner.down) {
+        this.ring.visible = false;
+        this.ringFor = null;
+      } else {
+        this.ring.position.set(owner.rig.group.position.x, 0.03, owner.rig.group.position.z);
+      }
+    }
+    if (this.ring.visible) {
+      // Breathe, and turn the broken arc. The rotation is what makes it read as a marker
+      // rather than as one of the impact bursts, which are also circles on the ground.
+      const pulse = 1 + Math.sin(t * 3.4) * 0.07;
+      this.ring.scale.set(pulse, 1, pulse);
+      const arc = this.ring.getObjectByName('arc');
+      if (arc) arc.rotation.z = -t * 1.1;
     }
 
     for (let i = this.fx.length - 1; i >= 0; i--) {
@@ -505,7 +641,7 @@ export class BattleArena {
       }
       const mat = item.mesh.material as THREE.MeshBasicMaterial;
       if (item.kind === 'ring') {
-        item.mesh.position.y = 0.1 + easeOut(k) * item.rise;
+        item.mesh.position.y = 0.55 + easeOut(k) * item.rise;
         const s = 1 + k * 1.9;
         item.mesh.scale.set(s, s, s);
         mat.opacity = 0.9 * (1 - k);

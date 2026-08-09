@@ -61,7 +61,7 @@ function ensureRenderer(): { renderer: THREE.WebGLRenderer; camera: THREE.Perspe
     renderer.setSize(RENDER_SIZE, RENDER_SIZE, false);
     renderer.setClearColor(0x000000, 0);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.3;
 
     camera = new THREE.PerspectiveCamera(30, 1, 0.05, 40);
     // Slightly above and back: enough elevation to read the six legs, not so much that it
@@ -77,7 +77,7 @@ function ensureRenderer(): { renderer: THREE.WebGLRenderer; camera: THREE.Perspe
 
 /** A small studio: warm key, cool fill, bright rim to pick the shell edge off the dark card. */
 function lightScene(scene: THREE.Scene): void {
-  scene.add(new THREE.HemisphereLight(0xbfd4ea, 0x3a3428, 1.1));
+  scene.add(new THREE.HemisphereLight(0xd8e8f8, 0x6b6250, 1.9));
 
   const key = new THREE.DirectionalLight(0xfff0d8, 3.1);
   key.position.set(-1.9, 2.6, 2.2);
